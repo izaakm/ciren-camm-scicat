@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cammcat"
+version = "0.1.0"
+dependencies = [
+  "pyscicat>=0.4.8",
+]
+requires-python = ">=3.14"
+authors = [
+  {name = "J. Izaak Miller", email = "izaak@duck.com"},
+]
+maintainers = [
+  {name = "J. Izaak Miller", email = "izaak@duck.com"},
+]
+description = "CAMM SciCat"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICEN[CS]E.*"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+cammcat = "cammcat.cli:cli"
