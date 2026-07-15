@@ -55,6 +55,7 @@ RawDataset(
 '''
 
 
+import json
 import argparse
 import os
 import pathlib
@@ -536,7 +537,10 @@ def cli_config_list(args):
     return 0
 
 
-def cli_get(args):
+def cli_show(args):
+    '''
+    What do they want to do with the data when they get an object out of the CLI?
+    '''
     settings = load_settings(args.config_file, os.environ, args)
     client = get_client(
         username=settings.username,
@@ -545,7 +549,7 @@ def cli_get(args):
     )
     for pid in args.dataset_id:
         dataset = client.get_dataset_by_pid(pid)
-        print(dataset)
+        print(json.dumps(dataset, indent=2))
 
 
 def cli_list(args):
@@ -581,8 +585,8 @@ def cli():
     parse_config = subparsers.add_parser('config')
     parse_config.set_defaults(func=cli_config)
 
-    parse_get = subparsers.add_parser('get')
-    parse_get.set_defaults(func=cli_get)
+    parse_show = subparsers.add_parser('show')
+    parse_show.set_defaults(func=cli_show)
 
     parse_list = subparsers.add_parser('list')
     parse_list.set_defaults(func=cli_list)
@@ -634,7 +638,7 @@ def cli():
     parse_config_list = parse_config_subparsers.add_parser('list')
     parse_config_list.set_defaults(func=cli_config_list)
 
-    parse_get.add_argument('dataset_id', type=str, nargs='*')
+    parse_show.add_argument('dataset_id', type=str, nargs='*')
 
     args = parser.parse_args()
     # print(args)
