@@ -47,8 +47,11 @@ RawDataset(
 
 import os
 
+# from os.path import join, getsize
+
+from collections import UserList
 from datetime import datetime
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 from pyscicat.model import (
@@ -59,9 +62,40 @@ from pyscicat.model import (
     RawDataset
 )
 
+from cammcat.settings import standardize_setting_names
+
 # ========================================================================
 # Dataset
 # ========================================================================
+class ScientificMetadata(BaseModel):
+    pass
+
+
+class CAMMDataset(RawDataset):
+    scientificMetadata: Optional[ScientificMetadata] = None
+
+    def get(self, key, default=None):
+        if hasattr(self, key):
+            return getattr(self, key)
+        return default
+
+
+class ListOfDatasets(UserList):
+
+    def list(self, fields=None, default=''):
+        fields = fields or ['pid', 'datasetName']
+        fields = standardize_setting_names(fields, errors='raise')
+        lines = []
+        for dataset in self.data:
+            line = []
+            for field in fields:
+                line.append(dataset.get(field, default))
+            lines.append(line)
+        return fields, lines
+
+
+# Attributes of RawDataset, for reference
+# =======================================
 # createdBy: str | None = None,
 # updatedBy: str | None = None,
 # updatedAt: str | None = None,
@@ -100,8 +134,6 @@ def get_numberOfFiles(sourceFolder):
 # sharedWith: List[str] | None = None,
 
 # size: int | None = None,
-import os
-from os.path import join, getsize
 def get_size(sourceFolder):
     '''
     Based on example from `os.walk` example in Python docs.
@@ -113,7 +145,7 @@ def get_size(sourceFolder):
     '''
     size = 0
     for root, dirs, files in os.walk(sourceFolder):
-        size += sum(getsize(join(root, name)) for name in files)
+        size += sum(os.path.getsize(os.path.join(root, name)) for name in files)
     return size
 
 
@@ -215,7 +247,7 @@ def new_dataset(
 
     size = size or get_size(sourceFolder)
 
-    return RawDataset(
+    return CAMMDataset(
         # Required
         contactEmail=contactEmail,
         creationLocation=creationLocation,
