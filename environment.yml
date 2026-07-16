@@ -1,0 +1,11 @@
+name: camm-scicat
+channels:
+  - conda-forge
+dependencies:
+  - ipykernel
+  - pip
+  - pydantic
+  - python
+  - pyyaml
+  - pip:
+    - pyscicat>=0.4.8
