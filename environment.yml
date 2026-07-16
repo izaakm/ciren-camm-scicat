@@ -6,6 +6,7 @@ dependencies:
   - pip
   - pydantic
   - python
+  - pytest
   - pyyaml
   - pip:
     - pyscicat>=0.4.8
