@@ -34,7 +34,7 @@ def cli_add(args):
     settings = load_settings(args.config_file, os.environ, args)
     dataset = new_dataset(**settings.model_dump())
     if args.dry_run:
-        print(vars(dataset))
+        print(dataset.model_dump_json(indent=2))
     else:
         client = get_client(
             username=settings.username,
@@ -81,6 +81,7 @@ def cli_show(args):
 def cli_list(args):
     from cammcat.settings import load_settings
     from cammcat.client import get_client
+    from cammcat.models import ListOfDatasets
 
     settings = load_settings(args.config_file, os.environ, args)
     client = get_client(
@@ -89,16 +90,17 @@ def cli_list(args):
         base_url=settings.base_url
     )
 
-    datasets = client.get_datasets()
+    # datasets = client.get_datasets()
+    datasets = ListOfDatasets(client.get_datasets())
     if not datasets:
         print('No datasets found.')
         return 0
 
-    for dataset in datasets:
-        # print(dataset)
-        pid = dataset.get('pid')
-        name = dataset.get('datasetName')
-        print(f'{pid}  {name}')
+    fields = args.fields.split(',')
+    fields, lines = datasets.list(fields=fields)
+    print(*fields, sep=args.sep)
+    for line in lines:
+        print(*line, sep=args.sep)
 
     return 0
 
@@ -173,6 +175,15 @@ def cli():
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
     parse_config_list.set_defaults(func=cli_config_list)
+
+    parse_list.add_argument(
+        '--fields', '-f',
+        help='Comma separated list of fields (not case sensitive).',
+        type=str,
+        default='pid,datasetName'
+    )
+    parse_list.add_argument('--sep', type=str, default='\t')
+    parse_list.add_argument('--parsable', '-p', dest='sep', action='store_const', const='|')
 
     parse_show.add_argument('dataset_id', type=str, nargs='*')
 
