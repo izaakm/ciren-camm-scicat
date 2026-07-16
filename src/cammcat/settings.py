@@ -55,7 +55,7 @@ _env_camm_base_url = 'CAMM_BASE_URL'
 # }
 
 # owner vs contact ??? ~> PI? ~> createdBy?
-settings: List[str] = [
+list_of_settings: List[str] = [
     'contactEmail',
     'creationLocation',
     'creationTime',
@@ -99,7 +99,25 @@ settings: List[str] = [
 
 # Use the keys from the example config, e.g.:
 # { 'CAMM_OWNEREMAIL': 'ownerEmail', ... }
-env2setting = {f'CAMM_{setting.upper()}': setting for setting in settings} 
+env2setting = {f'CAMM_{setting.upper()}': setting for setting in list_of_settings} 
+
+# Helper: contactemail => contactEmail
+casefold_settings = {setting.casefold():setting for setting in list_of_settings}
+
+def standardize_setting_names(settings, errors='raise'):
+    '''
+    Given a list of "settings", get the standard name of that setting, e.g.:
+
+        given    : contactemail
+        standard : contactEmail
+    '''
+    found = []
+    for given in settings:
+        standard = casefold_settings.get(given.casefold())
+        if not standard and errors != 'coerce':
+            raise ValueError(f'Cannot find setting: {given}')
+        found.append(standard)
+    return found
 
 
 # ========================================================================
