@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-'''
-Docker container:
-
-    username: admin
-    password: 2jf70TPNZsS
-
-
-'''
-
 import argparse
 import os
 import sys
@@ -20,7 +11,6 @@ from cammcat.settings import (
     _env_camm_password,
     _env_camm_base_url
 )
-
 
 
 # ========================================================================
