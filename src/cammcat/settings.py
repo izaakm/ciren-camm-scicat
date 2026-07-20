@@ -164,7 +164,9 @@ class Settings(BaseModel):
     ownerGroup: str|None = None
     accessGroups: List[str]|None = None
     classification: str|None = None
-    createdAt: str|None = Field(default_factory=utcnow)
+    # createdAt: str|None = Field(default_factory=utcnow)
+    # ^pyscicat.client.ScicatCommError: Error in operation datasets_create: {'status': 400, 'message': '[{...},{"property":"createdAt","constraints":{"whitelistValidation":"property createdAt should not exist"}}]'}
+    createdAt: str|None = None
     createdBy: str|None = None
     dataFormat: str|None = None
     datasetName: str|None = None
@@ -190,7 +192,9 @@ class Settings(BaseModel):
     sourceFolderHost: str|None = None
     techniques: List[str]|None = None
     type: str|None = None
-    updatedAt: str|None = Field(default_factory=utcnow)
+    # updatedAt: str|None = Field(default_factory=utcnow)
+    # ^pyscicat.client.ScicatCommError: Error in operation datasets_create: {'status': 400, 'message': '[{"property":"updatedAt","constraints":{"whitelistValidation":"property updatedAt should not exist"}},{...}]'}
+    updatedAt: str|None = None
     updatedBy: str|None = None
     validationStatus: str|None = None
     version: str|None = None
@@ -262,9 +266,12 @@ def merge_settings(*settings, dropna=True):
     return Settings(**data)
 
 
-def load_settings(config_file, env_config, cli_config, dropna=True):
-    # Check the configs.
-    # Priority (high to low): CLI > ENV > config file
+def load_settings(config_file, env_config, cli_config, dropna=True, errors='raise'):
+    '''
+    Load and merge settings. Priority (high to low):
+
+        CLI > ENV > config file
+    '''
     configs = []
     if os.path.exists(config_file):
         # Lowest priority in first, will be overwritten by configs below.
@@ -279,6 +286,14 @@ def load_settings(config_file, env_config, cli_config, dropna=True):
         configs.append(d)
 
     settings = merge_settings(*configs, dropna=dropna)
+
+    # This probably needs to be implemented separately for each cli command.
+    # if errors != 'ignore':
+    #     if settings.sourceFolder is None:
+    #         raise ValueError('sourceFolder cannot be None')
+    #     elif not os.path.isdir(settings.sourceFolder):
+    #         raise FileNotFoundError(f'sourceFolder does not exist or is not a directory: {settings.sourceFolder}')
+
     return settings
 
 
