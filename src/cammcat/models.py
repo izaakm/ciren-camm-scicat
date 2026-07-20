@@ -50,16 +50,17 @@ import os
 # from os.path import join, getsize
 
 from collections import UserList
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 from pyscicat.model import (
+    Attachment,
     CreateDatasetOrigDatablockDto,
     DataFile,
     DatasetType,
     Ownable,
-    RawDataset
+    RawDataset,
 )
 
 from cammcat.settings import standardize_setting_names
@@ -156,6 +157,73 @@ def get_size(sourceFolder):
     for root, dirs, files in os.walk(sourceFolder):
         size += sum(os.path.getsize(os.path.join(root, name)) for name in files)
     return size
+
+
+def get_data_file_from_path(filepath, chkAlg=None, **kwargs):
+    '''
+    class DataFile(MongoQueryable):
+        """
+        A reference to a file in SciCat. Path is relative
+        to the Dataset's sourceFolder parameter
+        """
+        path: str
+        size: int
+        time: Optional[str] = None
+        chk: Optional[str] = None
+        uid: Optional[str] = None
+        gid: Optional[str] = None
+        perm: Optional[str] = None
+    '''
+    stats = os.stat(filepath)
+    # os.stat_result(st_mode=33188, st_ino=7876932, st_dev=234881026,
+    # st_nlink=1, st_uid=501, st_gid=501, st_size=264, st_atime=1297230295,
+    # st_mtime=1297230027, st_ctime=1297230027)
+    if chkAlg:
+        # [TODO] Calc checksum
+        chk = 'NOT_IMPLEMENTED'
+    else:
+        chk = None
+    return DataFile(
+        path=filepath,
+        size=stats.st_size,
+        time=datetime.fromtimestamp(stats.st_mtime, tz=timezone.utc).isoformat(), # schema requires str|None
+        chk=chk,                            # Checksum?
+        uid=str(stats.st_uid),
+        gid=str(stats.st_gid),
+        perm=None,                          # How to get permissions?
+        createdAt=kwargs.get('createdAt'),  # From MongoQueryable
+        createdBy=kwargs.get('createdBy'),  # From MongoQueryable
+        updatedAt=kwargs.get('updatedAt'),  # From MongoQueryable
+        updatedBy=kwargs.get('updatedBy'),  # From MongoQueryable
+    )
+
+
+def get_data_block(sourceFolder, chkAlg=None, **kwargs):
+    '''
+    Return a list of DataFiles
+
+        class CreateDatasetOrigDatablockDto(BaseModel):
+            """
+            DTO for creating a new dataset with an original datablock
+            """
+            size: int
+            dataFileList: List[DataFile]
+            chkAlg: Optional[str] = None
+
+    '''
+    if not os.path.isdir(sourceFolder):
+        raise FileNotFoundError(f'sourceFolder not found or not a directory: {sourceFolder}')
+    dataFileList = []
+    for root, dirs, files in os.walk(sourceFolder):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            dataFileList.append(get_data_file_from_path(filepath, **kwargs))
+    size = sum([f.size for f in dataFileList])
+    return CreateDatasetOrigDatablockDto(
+        size=size,
+        dataFileList=dataFileList,
+        chkAlg=chkAlg
+    )
 
 
 def new_dataset(
