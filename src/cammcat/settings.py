@@ -1,8 +1,9 @@
 import os
 import runpy
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # Some names of environment variables.
 _env_camm_config_file = 'CAMM_CONFIG_FILE'
@@ -142,6 +143,10 @@ def standardize_setting_names(settings, errors='raise'):
 #     spec.loader.exec_module(module)
 #     return module
 
+
+def utcnow():
+    return datetime.now(timezone.utc).isoformat(timespec='seconds')
+
 class Settings(BaseModel):
     # Client settings
     base_url: str|None = None
@@ -152,14 +157,14 @@ class Settings(BaseModel):
     # owner vs contact ??? ~> PI? ~> createdBy?
     contactEmail: str|None = None
     creationLocation: str|None = None
-    creationTime: str|None = None
+    creationTime: str|None = Field(default_factory=utcnow)
     owner: str|None = None
     sourceFolder: str|None = None
     principalInvestigator: str|None = None
     ownerGroup: str|None = None
     accessGroups: List[str]|None = None
     classification: str|None = None
-    createdAt: str|None = None
+    createdAt: str|None = Field(default_factory=utcnow)
     createdBy: str|None = None
     dataFormat: str|None = None
     datasetName: str|None = None
@@ -185,7 +190,7 @@ class Settings(BaseModel):
     sourceFolderHost: str|None = None
     techniques: List[str]|None = None
     type: str|None = None
-    updatedAt: str|None = None
+    updatedAt: str|None = Field(default_factory=utcnow)
     updatedBy: str|None = None
     validationStatus: str|None = None
     version: str|None = None
