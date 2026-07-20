@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import time
 import sys
 
 from cammcat.settings import (
@@ -18,13 +19,16 @@ from cammcat.settings import (
 # ========================================================================
 def cli_add(args):
     from cammcat.settings import load_settings
-    from cammcat.models import new_dataset
+    from cammcat.models import new_dataset, get_data_block
     from cammcat.client import get_client
+    from pyscicat.client import ScicatCommError
 
     settings = load_settings(args.config_file, os.environ, args)
     dataset = new_dataset(**settings.model_dump())
+    data_block = get_data_block(**settings.model_dump())
     if args.dry_run:
         print(dataset.model_dump_json(indent=2))
+        print(data_block.model_dump_json(indent=2))
     else:
         client = get_client(
             username=settings.username,
@@ -32,7 +36,28 @@ def cli_add(args):
             base_url=settings.base_url
         )
         dataset_id = client.datasets_create(dataset)
+        success = False
+        for i in range(3):
+            try:
+                res = client.get_dataset_by_pid(dataset_id)
+                success = True
+                break
+            except ScicatCommError:
+                time.sleep(i**2)
+                continue
+        if not success:
+            raise ScicatCommError('Error, cannot confirm dataset created.')
+        # Adding the `data_block` (below) wasn't working for awhile. Does it
+        # need to sleep (added above)? I was initially calling it without
+        # capturing the output ... add `res =` and it started working ...
+        # doesn't seem like that would make a difference, what else did I
+        # change?
+        res = client.datasets_origdatablock_create(
+            dataset_id,
+            data_block
+        )
         print(f'{dataset_id}')
+        # print(res)
     return 0
 
 
@@ -66,6 +91,8 @@ def cli_show(args):
     for pid in args.dataset_id:
         dataset = client.get_dataset_by_pid(pid)
         print(json.dumps(dataset, indent=2))
+        data_blocks = client.get_dataset_origdatablocks(pid)
+        print(json.dumps(data_blocks, indent=2))
 
 
 def cli_list(args):
@@ -95,6 +122,10 @@ def cli_list(args):
     return 0
 
 
+def cli_list_files(args):
+    raise NotImplementedError
+
+
 def cli():
     res = 0
 
@@ -118,6 +149,9 @@ def cli():
 
     parse_list = subparsers.add_parser('list')
     parse_list.set_defaults(func=cli_list)
+
+    parse_list_files = subparsers.add_parser('list-files')
+    parse_list_files.set_defaults(func=cli_list_files)
 
     # Add [dataset]
     # Metadata => Required
@@ -161,6 +195,8 @@ def cli():
     parse_add.add_argument('--updatedAt', type=str)
     parse_add.add_argument('--validationStatus', type=str)
     parse_add.add_argument('--version', type=str)
+    # Others
+    parse_add.add_argument('--chkAlg', type=str)
 
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
@@ -175,7 +211,10 @@ def cli():
     parse_list.add_argument('--sep', type=str, default='\t')
     parse_list.add_argument('--parsable', '-p', dest='sep', action='store_const', const='|')
 
+    parse_list_files.add_argument('pid', help='List the files associated with the dataset PID(s). If no PID is given, list all files for all datasets.', nargs='*')
+
     parse_show.add_argument('dataset_id', type=str, nargs='*')
+    parse_show.add_argument('--data-blocks', help='Also show the files for the dataset.', action='store_true')
 
     args = parser.parse_args()
     # print(args)
