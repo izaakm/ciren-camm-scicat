@@ -79,6 +79,15 @@ class CAMMDataset(RawDataset):
             return getattr(self, key)
         return default
 
+    def to_json(self):
+        pass
+
+    def to_yaml(self):
+        pass
+
+    def to_text(self):
+        pass
+
 
 class ListOfDatasets(UserList):
 
