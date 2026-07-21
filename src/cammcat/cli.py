@@ -74,6 +74,15 @@ def cli_config_list(args):
     return 0
 
 
+def cli_help(args):
+    from cammcat.settings import list_of_settings, load_settings
+    if args.topic == 'settings':
+        settings = load_settings(args.config_file, os.environ, args)
+        print(settings)
+    elif args.topic == 'format':
+        print(*list_of_settings, sep='\n')
+
+
 def cli_show(args):
     '''
     What do they want to do with the data when they get an object out of the CLI?
@@ -123,7 +132,33 @@ def cli_list(args):
 
 
 def cli_list_files(args):
-    raise NotImplementedError
+    import json
+    from cammcat.settings import load_settings
+    from cammcat.client import get_client
+
+    settings = load_settings(args.config_file, os.environ, args)
+    client = get_client(
+        username=settings.username,
+        password=settings.password,
+        base_url=settings.base_url
+    )
+    linefmt = '{pid:<16} {uid:>4} {gid:>4} {size:>12} {mtime:<24} {filepath}'
+    headerfmt = linefmt.replace('>', '<')
+    print(headerfmt.format(pid='PID', uid='UID', gid='GID', size='Size', mtime='mTime', filepath='Filepath'))
+    for pid in args.dataset_id:
+        # dataset = client.get_dataset_by_pid(pid)
+        # print(json.dumps(dataset, indent=2))
+        data_blocks = client.get_dataset_origdatablocks(pid)
+        # print(json.dumps(data_blocks, indent=2))
+        for block in data_blocks:
+            for item in block['dataFileList']:
+                uid = item['uid']
+                gid = item['gid']
+                size = item['size']
+                mtime = item['time']
+                filepath = item['path']
+                # print(pid, uid, gid, size, mtime, filepath)
+                print(linefmt.format(pid=pid, uid=uid, gid=gid, size=size, mtime=mtime, filepath=filepath))
 
 
 def cli():
@@ -137,6 +172,9 @@ def cli():
     parser.add_argument('--dry-run', '-n', action='store_true', default=False)
 
     subparsers = parser.add_subparsers()
+
+    parse_help = subparsers.add_parser('help')
+    parse_help.set_defaults(func=cli_help)
 
     parse_add = subparsers.add_parser('add')
     parse_add.set_defaults(func=cli_add)
@@ -202,8 +240,14 @@ def cli():
     parse_config_list = parse_config_subparsers.add_parser('list')
     parse_config_list.set_defaults(func=cli_config_list)
 
+    parse_help.add_argument(
+        'topic',
+        nargs='?',
+        choices=['format', 'settings']
+    )
+
     parse_list.add_argument(
-        '--fields', '-f',
+        '--fields', '--format', '-f',
         help='Comma separated list of fields (not case sensitive).',
         type=str,
         default='pid,datasetName'
@@ -211,7 +255,12 @@ def cli():
     parse_list.add_argument('--sep', type=str, default='\t')
     parse_list.add_argument('--parsable', '-p', dest='sep', action='store_const', const='|')
 
-    parse_list_files.add_argument('pid', help='List the files associated with the dataset PID(s). If no PID is given, list all files for all datasets.', nargs='*')
+    parse_list_files.add_argument(
+        'dataset_id',
+        help='List the files associated with the dataset PID(s). If no PID is given, list all files for all datasets.',
+        type=str,
+        nargs='*'
+    )
 
     parse_show.add_argument('dataset_id', type=str, nargs='*')
     parse_show.add_argument('--data-blocks', help='Also show the files for the dataset.', action='store_true')
