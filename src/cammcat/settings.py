@@ -56,6 +56,9 @@ _env_camm_base_url = 'CAMM_BASE_URL'
 # }
 
 # owner vs contact ??? ~> PI? ~> createdBy?
+# This is actually a list of "metadata" attributes for a dataset, not
+# "settings" that control the behavior of this library.
+# [TODO] Split "settings" from the "metadata" attributes for a dataset.
 list_of_settings: List[str] = [
     'contactEmail',
     'creationLocation',
