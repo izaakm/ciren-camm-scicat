@@ -160,6 +160,9 @@ def cli_list_files(args):
                 # print(pid, uid, gid, size, mtime, filepath)
                 print(linefmt.format(pid=pid, uid=uid, gid=gid, size=size, mtime=mtime, filepath=filepath))
 
+def cli_update(args):
+    pass
+
 
 def cli():
     res = 0
@@ -190,6 +193,9 @@ def cli():
 
     parse_list_files = subparsers.add_parser('list-files')
     parse_list_files.set_defaults(func=cli_list_files)
+
+    parse_update = subparsers.add_parser('update')
+    parse_update.set_defaults(func=cli_update)
 
     # Add [dataset]
     # Metadata => Required
