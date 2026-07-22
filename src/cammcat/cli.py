@@ -160,8 +160,55 @@ def cli_list_files(args):
                 # print(pid, uid, gid, size, mtime, filepath)
                 print(linefmt.format(pid=pid, uid=uid, gid=gid, size=size, mtime=mtime, filepath=filepath))
 
+
 def cli_update(args):
-    pass
+    raise NotImplementedError
+
+
+def add_dataset_args(parser):
+    # Add [dataset]
+    # Metadata => Required
+    parser.add_argument('--contactEmail', type=str)
+    parser.add_argument('--creationLocation', type=str)
+    parser.add_argument('--creationTime', type=str)
+    parser.add_argument('--owner', type=str)
+    parser.add_argument('--ownerGroup', type=str)
+    parser.add_argument('--principalInvestigator', type=str)
+    parser.add_argument('--sourceFolder', type=str)
+    # Metadata => Optional
+    # createdBy=createdBy,                        # Error: ... "should not exist"???
+    # history=history,                            # Error: ... "should not exist"???
+    # updatedBy=updatedBy,                         # Error: ... "should not exist"???
+    parser.add_argument('--accessGroups', type=str, nargs='*')
+    parser.add_argument('--classification', type=str)
+    parser.add_argument('--createdAt', type=str)
+    parser.add_argument('--dataFormat', type=str)
+    parser.add_argument('--datasetName', type=str)
+    parser.add_argument('--description', type=str)
+    parser.add_argument('--endTime', type=str)
+    parser.add_argument('--instrumentGroup', type=str)
+    parser.add_argument('--instrumentId', type=str)
+    parser.add_argument('--isPublished', action='store_true', default=False)
+    parser.add_argument('--keywords', type=str, nargs='*')
+    parser.add_argument('--license', type=str)
+    parser.add_argument('--numberOfFiles', type=int)
+    parser.add_argument('--numberOfFilesArchived', type=int)
+    parser.add_argument('--orcidOfOwner', type=str)
+    parser.add_argument('--ownerEmail', type=str)
+    parser.add_argument('--packedSize', type=str)
+    parser.add_argument('--pid', type=str)
+    parser.add_argument('--proposalId', type=str)
+    parser.add_argument('--sampleId', type=str)
+    parser.add_argument('--scientificMetadata', type=str, help='Dictionary')
+    parser.add_argument('--sharedWith', type=str, nargs='*')
+    parser.add_argument('--size', type=int)
+    parser.add_argument('--sourceFolderHost', type=str)
+    parser.add_argument('--techniques', type=str, nargs='*', help='List of dictionaries')
+    parser.add_argument('--type', dest='type_', type=str)
+    parser.add_argument('--updatedAt', type=str)
+    parser.add_argument('--validationStatus', type=str)
+    parser.add_argument('--version', type=str)
+    return parser
 
 
 def cli():
@@ -198,47 +245,7 @@ def cli():
     parse_update.set_defaults(func=cli_update)
 
     # Add [dataset]
-    # Metadata => Required
-    parse_add.add_argument('--contactEmail', type=str)
-    parse_add.add_argument('--creationLocation', type=str)
-    parse_add.add_argument('--creationTime', type=str)
-    parse_add.add_argument('--owner', type=str)
-    parse_add.add_argument('--ownerGroup', type=str)
-    parse_add.add_argument('--principalInvestigator', type=str)
-    parse_add.add_argument('--sourceFolder', type=str)
-    # Metadata => Optional
-    # createdBy=createdBy,                        # Error: ... "should not exist"???
-    # history=history,                            # Error: ... "should not exist"???
-    # updatedBy=updatedBy,                         # Error: ... "should not exist"???
-    parse_add.add_argument('--accessGroups', type=str, nargs='*')
-    parse_add.add_argument('--classification', type=str)
-    parse_add.add_argument('--createdAt', type=str)
-    parse_add.add_argument('--dataFormat', type=str)
-    parse_add.add_argument('--datasetName', type=str)
-    parse_add.add_argument('--description', type=str)
-    parse_add.add_argument('--endTime', type=str)
-    parse_add.add_argument('--instrumentGroup', type=str)
-    parse_add.add_argument('--instrumentId', type=str)
-    parse_add.add_argument('--isPublished', action='store_true', default=False)
-    parse_add.add_argument('--keywords', type=str, nargs='*')
-    parse_add.add_argument('--license', type=str)
-    parse_add.add_argument('--numberOfFiles', type=int)
-    parse_add.add_argument('--numberOfFilesArchived', type=int)
-    parse_add.add_argument('--orcidOfOwner', type=str)
-    parse_add.add_argument('--ownerEmail', type=str)
-    parse_add.add_argument('--packedSize', type=str)
-    parse_add.add_argument('--pid', type=str)
-    parse_add.add_argument('--proposalId', type=str)
-    parse_add.add_argument('--sampleId', type=str)
-    parse_add.add_argument('--scientificMetadata', type=str, help='Dictionary')
-    parse_add.add_argument('--sharedWith', type=str, nargs='*')
-    parse_add.add_argument('--size', type=int)
-    parse_add.add_argument('--sourceFolderHost', type=str)
-    parse_add.add_argument('--techniques', type=str, nargs='*', help='List of dictionaries')
-    parse_add.add_argument('--type', dest='type_', type=str)
-    parse_add.add_argument('--updatedAt', type=str)
-    parse_add.add_argument('--validationStatus', type=str)
-    parse_add.add_argument('--version', type=str)
+    parse_add = add_dataset_args(parse_add)
     # Others
     parse_add.add_argument('--chkAlg', type=str)
 
@@ -270,6 +277,8 @@ def cli():
 
     parse_show.add_argument('dataset_id', type=str, nargs='*')
     parse_show.add_argument('--data-blocks', help='Also show the files for the dataset.', action='store_true')
+
+    parse_update = add_dataset_args(parse_update)
 
     args = parser.parse_args()
     # print(args)
