@@ -104,6 +104,10 @@ list_of_settings: List[str] = [
 # Use the keys from the example config, e.g.:
 # { 'CAMM_OWNEREMAIL': 'ownerEmail', ... }
 env2setting = {f'CAMM_{setting.upper()}': setting for setting in list_of_settings} 
+env2setting[_env_camm_config_file] = 'config_file'
+env2setting[_env_camm_username] = 'username'
+env2setting[_env_camm_password] = 'password'
+env2setting[_env_camm_base_url] = 'base_url'
 
 # Helper: contactemail => contactEmail
 casefold_settings = {setting.casefold():setting for setting in list_of_settings}
