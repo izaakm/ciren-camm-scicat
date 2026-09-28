@@ -77,6 +77,105 @@ class CAMMClient(ScicatClient):
         else:
             self._headers["Authorization"] = f"Bearer {self._token}"
 
+    def _make_limits(
+            self,
+            skip: Optional[int] = None,
+            limit: Optional[int] = None,
+            order_by: Optional[str] = None,
+        ) -> str:
+        """
+        Given the optional components, return a ~~string~~ [dict]
+        representation of the standard limit filter JSON for a query.
+        """
+        limits = {}
+        if skip is not None:
+            limits["skip"] = skip
+        if limit is not None:
+            limits["limit"] = limit
+            limits["order"] = "createdAt:desc"
+        if order_by is not None:
+            limits["order"] = order_by
+        # return json.dumps(limits)
+        return limits
+
+    def datasets_get_many(
+            self,
+            filter_fields: Optional[dict] = None,
+            include_fields: Optional[list] = None,
+            skip: Optional[int] = None,
+            limit: Optional[int] = None,
+            order_by: Optional[str] = None,
+        ) -> Optional[list[dict]]:
+        """
+        Gets datasets using the simple filter mechanism.
+        You should favor this call when your search is not complex.
+        (For resource-intensive queries use datasets_find instead.)
+        This function has been renamed and the old name has been mantained for backward compatibility
+        The previous names are find_datasets and get_datasets
+
+        For example, a search for Datasets of a given proposalId would have
+        ```python
+        filter_fields = {"proposalId": "1234"}
+        ```
+        A search for Datasets  with no proposalId would be:
+        ```python
+        filter_fields = {"proposalId": ""}
+        ```
+        If you want to search on partial strings, you can use "like":
+        ```python
+        filter_fields = {"proposalId": {"like":"123"}}
+        ```
+
+        Parameters
+        ----------
+        filter_fields : dict
+            Dictionary of filtering fields. Must be json serializable.
+
+        skip : int
+            number of items to skip
+
+        limit : int
+            number of items to return
+            if this is set, and "order_by" is not, "order_by" gets the default "createdAt:desc"
+
+        order_by : str
+            The field to use when sorting results, and the sort direction.
+            Composed of a string "field:direction" , where "direction" is "asc" or "desc".
+        """
+        filter = {}
+
+        filter["limits"] = self._make_limits(skip, limit, order_by)
+
+        if filter_fields is not None:
+            filter["where"] = filter_fields
+        if include_fields is not None:
+            # When we switch to the v4 API, there will be no need to wrap these
+            # in "relation" objects like this.
+            filter["include"] = [{"relation": r} for r in include_fields]
+        # filter_str = json.dumps(filter)
+
+        # endpoint = f"Datasets?filter={filter_str}"
+        # return cast(
+        #     Optional[list[dict]],
+        #     self._call_endpoint(
+        #         cmd="get", endpoint=endpoint, operation="datasets_get_many"
+        #     ),
+        # )
+        url = f'{self._base_url.strip("/")}/datasets'
+        res = requests.request(
+            method='GET',
+            url=url,
+            params=filter,
+            headers=self._headers,
+            timeout=self._timeout_seconds,
+            stream=False,
+            verify=self._verify,
+        )
+        return res.json()
+
+    # Alias for backwards compatibility.
+    get_datasets = datasets_get_many
+
     def login(self):
         """
         Attempts to authenticate using the stored username and password.
