@@ -68,12 +68,12 @@ from cammcat.settings import standardize_setting_names
 # ========================================================================
 # Dataset
 # ========================================================================
-class ScientificMetadata(BaseModel):
-    pass
+# class ScientificMetadata(BaseModel):
+#     pass
 
 
 class CAMMDataset(RawDataset):
-    scientificMetadata: Optional[ScientificMetadata] = None
+    scientificMetadata: Optional[dict[str,Any]] = None
 
     def get(self, key, default=None):
         if hasattr(self, key):
