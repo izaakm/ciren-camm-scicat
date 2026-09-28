@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from pyscicat.client import ScicatClient, encode_thumbnail
+from pyscicat.client import *
 
 from pyscicat.model import (
     Attachment,
@@ -22,14 +22,60 @@ class CAMMClient(ScicatClient):
     '''
     Difference from ScicatClient:
         
+        __init__
+            -> add "auth method"
         login
-          -> calls self.get_token (instead of pyscicat.client.get_token)
+            -> calls self.get_token (instead of pyscicat.client.get_token)
         get_token
-          -> moved pyscicat.client.get_token to self.get_token
-          -> call self._log_in_via_users_login instead of pyscicat.client.*
+            -> moved pyscicat.client.get_token to self.get_token
+            -> call self._log_in_via_users_login instead of pyscicat.client.*
         _log_in_via_users_login
-          -> enable ldap login
+            -> enable ldap login
     '''
+
+    def __init__(
+            self,
+            base_url: str,
+            token: Optional[str] = None,
+            username: Optional[str] = None,
+            password: Optional[str] = None,
+            timeout_seconds: Optional[int] = None,
+            auto_login=True,
+            auth_method="ldap",
+            verify=True
+        ):
+        """Initialize a new instance. This method attempts to create a token
+        from the provided username and password
+
+        Parameters
+        ----------
+        base_url : str
+            Base url. e.g. `http://localhost:3000/api/v3`
+        username : str
+            username to login with
+        password : str
+            password to login with
+        timeout_seconds : [int], optional
+            timeout in seconds to wait for http connections to return, by default None
+        """
+        self._base_url = base_url
+        self._timeout_seconds = (
+            timeout_seconds  # we are hitting a transmission timeout...
+        )
+        self._username = username  # default username
+        self._password = password  # default password
+        self._token = token  # store token here
+        self._headers = {}  # store headers
+        self._auth_method = auth_method
+        self._verify = verify
+
+        if not self._token:
+            if not self._username or not self._password:
+                raise ValueError("SciCat login credentials (username, password) must be provided if token is not provided")
+            if auto_login:
+                self.login()
+        else:
+            self._headers["Authorization"] = f"Bearer {self._token}"
 
     def login(self):
         """
@@ -42,7 +88,7 @@ class CAMMClient(ScicatClient):
             self._password,
             headers=self._headers
         )
-        self._headers["Authorization"] = "Bearer {}".format(self._token)
+        self._headers["Authorization"] = f"Bearer {self._token}"
 
     def get_token(self, base_url, username, password, headers={}):
         """
@@ -53,7 +99,7 @@ class CAMMClient(ScicatClient):
         # Try both and see what works. This is not nice but seems to be the only
         # feasible solution right now.
 
-        logger.info(" Getting new token")
+        logger.info("Getting new token")
 
         response = self._log_in_via_users_login(base_url, username, password, headers)
         if response.ok:
@@ -63,20 +109,23 @@ class CAMMClient(ScicatClient):
             response_text = response.json()
         except json.decoder.JSONDecodeError:
             response_text = response.text
-        logger.error(f" Failed log in:  {response_text}")
+        logger.error(f"Failed log in:  {response_text}")
         raise ScicatLoginError(response.content)
 
     def _log_in_via_users_login(self, base_url, username, password, headers={}):
-        # login_url = "/".join(s.strip("/") for s in [base_url, "auth/ldap"])
-        # login_url = f'{base_url.strip("/")}/auth/msad'
-        login_url = 'https://scicat-ciren.cn.isaac.utk.edu/api/v3/auth/ldap'
-        print(f'login_url="{login_url}"')
+        # EG: 'https://scicat-ciren.cn.isaac.utk.edu/api/v3/auth/ldap'
+        if self._auth_method.casefold() == "ldap":
+            login_url = f'{base_url.strip("/")}/auth/ldap'
+        else:
+            login_url = f'{base_url.strip("/")}/auth/login'
+
+        logger.debug(f'login_url="{login_url}"')
         response = requests.post(
             login_url,
             json={"username": username, "password": password},
             headers=headers,
             stream=False,
-            verify=True,
+            verify=self._verify,
         )
         if not response.ok:
             try:
