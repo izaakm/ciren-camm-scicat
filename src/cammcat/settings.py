@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # Some names of environment variables.
 _env_camm_config_file = 'CAMM_CONFIG_FILE'
+_env_camm_token = 'CAMM_TOKEN'
 _env_camm_username = 'CAMM_USERNAME'
 _env_camm_password = 'CAMM_PASSWORD'
 _env_camm_base_url = 'CAMM_BASE_URL'
@@ -105,6 +106,7 @@ list_of_settings: List[str] = [
 # { 'CAMM_OWNEREMAIL': 'ownerEmail', ... }
 env2setting = {f'CAMM_{setting.upper()}': setting for setting in list_of_settings} 
 env2setting[_env_camm_config_file] = 'config_file'
+env2setting[_env_camm_token] = 'token'
 env2setting[_env_camm_username] = 'username'
 env2setting[_env_camm_password] = 'password'
 env2setting[_env_camm_base_url] = 'base_url'
@@ -157,6 +159,7 @@ def utcnow():
 class Settings(BaseModel):
     # Client settings
     base_url: str|None = None
+    token: str|None = None
     username: str|None = None
     password: str|None = None
 
