@@ -2,17 +2,21 @@
 # coding: utf-8
 
 import argparse
+import logging
 import os
 import time
 import sys
 
 from cammcat.settings import (
     _env_camm_config_file,
+    _env_camm_token,
     _env_camm_username,
     _env_camm_password,
     _env_camm_base_url
 )
 
+
+logger = logging.getLogger(__name__)
 
 # ========================================================================
 # CLI
@@ -30,12 +34,22 @@ def cli_add(args):
         print(dataset.model_dump_json(indent=2))
         print(data_block.model_dump_json(indent=2))
     else:
+        logger.debug('Creating client...')
         client = get_client(
+            token=settings.token,
             username=settings.username,
             password=settings.password,
             base_url=settings.base_url
         )
-        dataset_id = client.datasets_create(dataset)
+
+        logger.debug('Adding dataset...')
+        # # Old, official pyscicat API
+        # dataset_id = client.datasets_create(dataset)
+        # New client API, return the dataset, not just the pid
+        dataset = client.datasets_create(dataset)
+        dataset_id = dataset['pid']
+
+        logger.debug('Verifiying...')
         success = False
         for i in range(3):
             try:
@@ -52,6 +66,7 @@ def cli_add(args):
         # capturing the output ... add `res =` and it started working ...
         # doesn't seem like that would make a difference, what else did I
         # change?
+        logger.debug('Adding data blocks...')
         res = client.datasets_origdatablock_create(
             dataset_id,
             data_block
@@ -69,6 +84,9 @@ def cli_config(args):
 def cli_config_list(args):
     from cammcat.settings import load_config
 
+    if not args.config_file:
+        print('Config file is not set.')
+        return 1
     config = load_config(args.config_file)
     print(config.list())
     return 0
@@ -93,6 +111,7 @@ def cli_show(args):
 
     settings = load_settings(args.config_file, os.environ, args)
     client = get_client(
+        token=settings.token,
         username=settings.username,
         password=settings.password,
         base_url=settings.base_url
@@ -110,14 +129,18 @@ def cli_list(args):
     from cammcat.models import ListOfDatasets
 
     settings = load_settings(args.config_file, os.environ, args)
+    logger.debug(settings)
+
     client = get_client(
+        token=settings.token,
         username=settings.username,
         password=settings.password,
         base_url=settings.base_url
     )
 
-    # datasets = client.get_datasets()
     datasets = ListOfDatasets(client.get_datasets())
+    logger.debug(f'type(datasets) => {type(datasets)}')
+    logger.debug(datasets)
     if not datasets:
         print('No datasets found.')
         return 0
@@ -138,6 +161,7 @@ def cli_list_files(args):
 
     settings = load_settings(args.config_file, os.environ, args)
     client = get_client(
+        token=settings.token,
         username=settings.username,
         password=settings.password,
         base_url=settings.base_url
@@ -215,6 +239,7 @@ def cli():
     res = 0
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--log-level', default=logging.DEBUG)
     parser.add_argument('--config-file', default=os.getenv(_env_camm_config_file, ''))
     parser.add_argument('--scicat-base-url', dest='base_url', default=os.getenv(_env_camm_base_url, ''))
     parser.add_argument('--dry-run', '-n', action='store_true', default=False)
@@ -280,6 +305,8 @@ def cli():
 
     args = parser.parse_args()
     # print(args)
+
+    logging.basicConfig(level=args.log_level)
 
     res = args.func(args)
 
