@@ -1,5 +1,8 @@
 import logging
+import json
 import requests
+
+from urllib.parse import quote_plus
 
 from pyscicat.client import *
 
@@ -98,6 +101,115 @@ class CAMMClient(ScicatClient):
         # return json.dumps(limits)
         return limits
 
+    def datasets_create(
+        self, dataset: Union[Dataset, RawDataset, DerivedDataset]
+    ) -> str:
+        """
+        Upload a new dataset. Uses the generic dataset endpoint.
+        Relies on the endpoint to sense the dataset type
+        This function was renamed.
+        It is still accessible with the original name for backward compatibility
+        The original name were create_dataset and upload_new_dataset
+
+        Parameters
+        ----------
+        dataset : Dataset
+            Dataset to create
+
+        Returns
+        -------
+        str
+            pid of the dataset
+
+        Raises
+        ------
+        ScicatCommError
+            Raises if a non-20x message is returned
+        """
+        # result = cast(
+        #     Optional[dict],
+        #     self._call_endpoint(
+        #         cmd="post",
+        #         endpoint="Datasets",
+        #         data=dataset,
+        #         operation="datasets_create",
+        #     ),
+        # )
+        # assert result and "pid" in result and isinstance(result["pid"], str)
+        # return result["pid"]
+        url = f'{self._base_url.strip("/")}/datasets'
+        # print(type(dataset))
+        # print(dataset.model_dump())
+        # print(dataset.model_dump_json())
+
+        READONLY = {"createdBy", "updatedBy", "createdAt", "updatedAt", "history"}
+        payload = dataset.model_dump(
+            mode="json",
+            exclude=READONLY,
+            exclude_none=True,
+        )
+
+        res = requests.post(
+            url=url,
+            json=payload,
+            headers=self._headers,
+            timeout=self._timeout_seconds,
+            stream=False,
+            verify=self._verify,
+        )
+        if not res.ok:
+            logger.debug(f'url => {res.url}')
+            logger.debug(f'headers => {self._headers}')
+            # logger.debug(res.content)
+            content = json.loads(res.content.decode())
+            logger.debug(f'content.message => {content["message"]}')
+            logger.debug(f'payload => {payload}')
+            res.raise_for_status()
+        # print(res)
+        # print('response.content =>', res.content.decode())
+        # print('response.json() =>', res.json())
+        return res.json()
+
+    # Alias for backwards compatibility.
+    upload_new_dataset = datasets_create
+    create_dataset = datasets_create
+
+    def datasets_get_one(self, pid: str) -> Optional[dict]:
+        """
+        Gets dataset with the pid provided.
+        This function has been renamed. Provious name has been maintained for backward compatibility.
+        Previous names was get_dataset_by_pid
+
+        Parameters
+        ----------
+        pid : string
+            pid of the dataset requested.
+        """
+        # return cast(
+        #     Optional[dict],
+        #     self._call_endpoint(
+        #         cmd="get",
+        #         endpoint=f"Datasets/{quote_plus(pid)}",
+        #         operation="datasets_get_one",
+        #     ),
+        # )
+        logger.debug(f'pid => {pid}')
+        logger.debug(f'quote_plus(pid) => {quote_plus(pid)}')
+        url = f'{self._base_url.strip("/")}/datasets/{quote_plus(pid)}'
+        res = requests.request(
+            method='GET',
+            url=url,
+            headers=self._headers,
+            timeout=self._timeout_seconds,
+            stream=False,
+            verify=self._verify,
+        )
+        res.raise_for_status()
+        return res.json()
+
+    # Alias for backwards compatibility.
+    get_dataset_by_pid = datasets_get_one
+
     def datasets_get_many(
             self,
             filter_fields: Optional[dict] = None,
@@ -171,6 +283,7 @@ class CAMMClient(ScicatClient):
             stream=False,
             verify=self._verify,
         )
+        res.raise_for_status()
         return res.json()
 
     # Alias for backwards compatibility.
@@ -232,6 +345,7 @@ class CAMMClient(ScicatClient):
             except json.decoder.JSONDecodeError:
                 response_text = response.text
             logger.info(f" Failed to log in via endpoint Users/login: {response_text}")
+        response.raise_for_status()
         return response
 
     # def add_dataset(self, *args, **kwargs):
