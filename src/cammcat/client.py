@@ -1,6 +1,7 @@
 import logging
 import json
 import requests
+import warnings
 
 from urllib.parse import quote_plus
 
@@ -61,7 +62,11 @@ class CAMMClient(ScicatClient):
         timeout_seconds : [int], optional
             timeout in seconds to wait for http connections to return, by default None
         """
-        self._base_url = base_url
+        if not base_url:
+            warnings.warn(f'base_url not specified or empty: base_url={base_url}')
+            self._base_url = base_url
+        else:
+            self.base_url = base_url.strip('/')
         self._timeout_seconds = (
             timeout_seconds  # we are hitting a transmission timeout...
         )
@@ -137,7 +142,7 @@ class CAMMClient(ScicatClient):
         # )
         # assert result and "pid" in result and isinstance(result["pid"], str)
         # return result["pid"]
-        url = f'{self._base_url.strip("/")}/datasets'
+        url = f'{self._base_url}/datasets'
         # print(type(dataset))
         # print(dataset.model_dump())
         # print(dataset.model_dump_json())
@@ -195,7 +200,7 @@ class CAMMClient(ScicatClient):
         # )
         logger.debug(f'pid => {pid}')
         logger.debug(f'quote_plus(pid) => {quote_plus(pid)}')
-        url = f'{self._base_url.strip("/")}/datasets/{quote_plus(pid)}'
+        url = f'{self._base_url}/datasets/{quote_plus(pid)}'
         res = requests.request(
             method='GET',
             url=url,
@@ -273,7 +278,7 @@ class CAMMClient(ScicatClient):
         #         cmd="get", endpoint=endpoint, operation="datasets_get_many"
         #     ),
         # )
-        url = f'{self._base_url.strip("/")}/datasets'
+        url = f'{self._base_url}/datasets'
         res = requests.request(
             method='GET',
             url=url,
@@ -327,9 +332,9 @@ class CAMMClient(ScicatClient):
     def _log_in_via_users_login(self, base_url, username, password, headers={}):
         # EG: 'https://scicat-ciren.cn.isaac.utk.edu/api/v3/auth/ldap'
         if self._auth_method.casefold() == "ldap":
-            login_url = f'{base_url.strip("/")}/auth/ldap'
+            login_url = f'{base_url}/auth/ldap'
         else:
-            login_url = f'{base_url.strip("/")}/auth/login'
+            login_url = f'{base_url}/auth/login'
 
         logger.debug(f'login_url="{login_url}"')
         response = requests.post(
