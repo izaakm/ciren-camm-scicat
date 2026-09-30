@@ -8,7 +8,7 @@ Connect to the scicat frontend in your browser at:
 > The web GUI is **only** accessible from the UTK VPN to members of the
 > `ciren-scicat` AD group.
 > 
-> - [Click here] to learn how to set up and log in to the VPN.
+> - [Click here][vpn] to learn how to set up and log in to the VPN.
 > - Let your CIREN facilitator know (by email) if you need to be added to the
 >   `ciren-scicat` AD group.
 
