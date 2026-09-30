@@ -239,7 +239,7 @@ def cli():
     res = 0
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--log-level', default=logging.DEBUG)
+    parser.add_argument('--log-level', default=logging.INFO)
     parser.add_argument('--config-file', default=os.getenv(_env_camm_config_file, ''))
     parser.add_argument('--scicat-base-url', dest='base_url', default=os.getenv(_env_camm_base_url, ''))
     parser.add_argument('--dry-run', '-n', action='store_true', default=False)
