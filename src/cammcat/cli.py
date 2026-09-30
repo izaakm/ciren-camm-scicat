@@ -206,6 +206,21 @@ def cli_update(args):
     raise NotImplementedError
 
 
+def parse_log_level(value, default=logging.WARNING):
+    if value.casefold().startswith('d'):
+        return logging.DEBUG
+    elif value.casefold().startswith('i'):
+        return logging.INFO
+    elif value.casefold().startswith('w'):
+        return logging.WARNING
+    elif value.casefold().startswith('e'):
+        return logging.ERROR
+    elif value.casefold().startswith('c'):
+        return logging.CRITICAL
+    else:
+        return default
+
+
 def add_dataset_args(parser):
     # Add [dataset]
     # Metadata => Required
@@ -256,7 +271,7 @@ def cli():
     res = 0
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--log-level', default=logging.WARNING)
+    parser.add_argument('--log-level', default=logging.WARNING, type=parse_log_level)
     parser.add_argument('--config-file', default=os.getenv(_env_camm_config_file, ''))
     parser.add_argument('--scicat-base-url', dest='base_url', default=os.getenv(_env_camm_base_url, ''))
     parser.add_argument('--dry-run', '-n', action='store_true', default=False)
