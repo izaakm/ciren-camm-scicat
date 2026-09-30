@@ -63,9 +63,10 @@ pip install .
 
 > [!IMPORTANT]
 > The **cammcat** and **pyscicat** packages use python **requests** to
-> communicate with the SciCat REST API. We have included a copy of the public
-> cert, which you must provide via the `CURL_CA_BUNDLE` env variable in order
-> for **requests** to connect:
+> communicate with the SciCat REST API. Since we are still using a self-signed
+> cert, you will have to provide this to **requests** or it will not connect.
+> We have included a copy of the public cert, which you must provide via the
+> `CURL_CA_BUNDLE` env variable in order for **requests** to connect:
 >
 > ```sh
 > export CURL_CA_BUNDLE="${PWD}/certs/scicat.crt"
