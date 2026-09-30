@@ -66,7 +66,7 @@ class CAMMClient(ScicatClient):
             warnings.warn(f'base_url not specified or empty: base_url={base_url}')
             self._base_url = base_url
         else:
-            self.base_url = base_url.strip('/')
+            self._base_url = base_url.strip('/')
         self._timeout_seconds = (
             timeout_seconds  # we are hitting a transmission timeout...
         )
