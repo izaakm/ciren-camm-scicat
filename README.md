@@ -109,7 +109,6 @@ export CAMM_PASSWORD="<Password>"
 # export CAMM_TOKEN="<token from web GUI>"
 # export CAMM_CONFIG_FILE="/path/to/config.py"
 EOF
-source .env
 ```
 
 Then
