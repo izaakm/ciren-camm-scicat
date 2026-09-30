@@ -165,22 +165,47 @@ source .env
 ## Examples
 
 
-List all datasets
+**List all datasets:**
 
 ```sh
 cammcat list
 ```
 
-Show a specific dataset
+Output:
+
+```
+pid	                                                    datasetName
+PID.SAMPLE.PREFIX/4db51a19-2a6d-493a-a84e-22990848ecf8	example/dataset
+```
+
+**Show a specific dataset**
 
 ```sh
 cammcat show <PID>
 ```
 
-Create a new dataset
+Output:
+
+```json
+{
+  "ownerGroup": "CAMM",
+  "accessGroups": [
+    "CAMM"
+  ],
+...
+}
+```
+
+**Create a new dataset**
 
 ```sh
 cammcat add --sourceFolder </path/to/dataset-directory>
+```
+
+Output (PID of dataset):
+
+```
+PID.SAMPLE.PREFIX/6a8afda8-4a15-4935-885a-5a426757a141
 ```
 
 
