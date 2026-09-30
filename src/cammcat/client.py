@@ -320,6 +320,7 @@ class CAMMClient(ScicatClient):
         logger.info("Getting new token")
 
         response = self._log_in_via_users_login(base_url, username, password, headers)
+        logger.debug(f'response => {response}')
         if response.ok:
             return response.json()["id"]  # not sure if semantically correct
 
