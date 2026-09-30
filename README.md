@@ -16,6 +16,14 @@ conda activate camm-scicat
 pip install .
 ```
 
+> [!TIP]
+> The `cammcat` CLI is installed in a conda environment on the ISAAC-NG
+> cluster:
+>
+> ```sh
+> module load miniconda
+> conda activate --prefix /lustre/isaac24/proj/UTK0487/conda/envs/camm-scicat
+> ```
 
 ## Usage
 
