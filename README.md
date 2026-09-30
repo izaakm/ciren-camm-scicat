@@ -38,7 +38,7 @@ pip install .
 >
 > ```sh
 > module load miniconda
-> conda activate --prefix /lustre/isaac24/proj/UTK0487/conda/envs/camm-scicat
+> conda activate /lustre/isaac24/proj/UTK0487/conda/envs/camm-scicat
 > ```
 
 
@@ -146,7 +146,7 @@ EOF
 Optional environment variables:
 
 ```sh
-tee -a.env << EOF
+tee -a .env << EOF
 # Environment variables override config.py
 export CAMM_BASE_URL="https://scicat-ciren.cn.isaac.utk.edu"
 export CAMM_USERNAME="<NetID>"
