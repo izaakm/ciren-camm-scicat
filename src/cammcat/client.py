@@ -306,6 +306,7 @@ class CAMMClient(ScicatClient):
             headers=self._headers
         )
         self._headers["Authorization"] = f"Bearer {self._token}"
+        logger.debug(self._headers)
 
     def get_token(self, base_url, username, password, headers={}):
         """
