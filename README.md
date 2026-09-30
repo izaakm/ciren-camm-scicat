@@ -4,6 +4,20 @@ Connect to the scicat frontend in your browser at:
 
 <https://scicat-ciren.isaac.utk.edu>
 
+> [!IMPORTANT]
+> The web GUI is **only** accessible from the UTK VPN to members of the
+> `ciren-scicat` AD group.
+> 
+> - [Click here] to learn how to set up and log in to the VPN.
+> - Let your CIREN facilitator know (by email) if you need to be added to the
+>   `ciren-scicat` AD group.
+
+[vpn]: https://utk.teamdynamix.com/TDClient/2277/OIT-Portal/KB/Article/130338/Virtual-Private-Network-VPN-User-Guide
+
+> [!WARNING]
+> We are currenlty using a self-signed cert for TLS/HTTPS; you will see a
+> warning from your browser when navigating to the URL.
+
 Note that the base url for connecting the CLI is different:
 
 `https://scicat-ciren.cn.isaac.utk.edu`
@@ -43,6 +57,16 @@ pip install .
 
 
 ## Setup
+
+> [!IMPORTANT]
+> The `cammcat` and `pyscicat` packages use python requests to communicate with
+> the SciCat REST API. We have included a copy of the public cert, which you
+> must provide via the `CURL_CA_BUNDLE` env variable in order for python
+> requests to connect:
+>
+> ```sh
+> export CURL_CA_BUNDLE="${PWD}/certs/scicat.crt"
+> ```
 
 ```sh
 tee /path/to/config.py << EOF
