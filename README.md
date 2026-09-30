@@ -18,9 +18,11 @@ Connect to the scicat frontend in your browser at:
 > We are currenlty using a self-signed cert for TLS/HTTPS; you will see a
 > warning from your browser when navigating to the URL.
 
-Note that the base url for connecting the CLI is different:
+> [!NOTE]
+> Note that the base url for connecting the CLI is different:
+>
+> `https://scicat-ciren.cn.isaac.utk.edu`
 
-`https://scicat-ciren.cn.isaac.utk.edu`
 
 ## Installation
 
@@ -38,6 +40,7 @@ pip install .
 > module load miniconda
 > conda activate --prefix /lustre/isaac24/proj/UTK0487/conda/envs/camm-scicat
 > ```
+
 
 ## Usage
 
@@ -59,14 +62,21 @@ pip install .
 ## Setup
 
 > [!IMPORTANT]
-> The `cammcat` and `pyscicat` packages use python requests to communicate with
-> the SciCat REST API. We have included a copy of the public cert, which you
-> must provide via the `CURL_CA_BUNDLE` env variable in order for python
-> requests to connect:
+> The **cammcat** and **pyscicat** packages use python **requests** to
+> communicate with the SciCat REST API. We have included a copy of the public
+> cert, which you must provide via the `CURL_CA_BUNDLE` env variable in order
+> for **requests** to connect:
 >
 > ```sh
 > export CURL_CA_BUNDLE="${PWD}/certs/scicat.crt"
 > ```
+
+> [!IMPORTANT]
+> Your **username** and **password** **must** be specific in either the
+> config.py file or as env variables. If you provide both, the env variables
+> take precedence over the config file.
+
+Optional config file:
 
 ```sh
 tee /path/to/config.py << EOF
@@ -78,7 +88,8 @@ tee /path/to/config.py << EOF
 # Or set the env variable:
 #
 #   export CAMM_CONFIG_FILE="/path/to/config.py"
-#
+# ========================================================================
+
 # ========================================================================
 # Client settings
 # ========================================================================
@@ -124,13 +135,14 @@ ownerGroup = 'CAMM'                                       # Required
 # size = None
 # sourceFolderHost = None
 # techniques = []
-# type = 'raw'     # <= Don't use this one
-# type_ = 'raw'    # Munge the key
+# type_ = 'raw'                                           # aka 'type'
 # updatedAt = None
 # updatedBy = None
 # validationStatus = None
 EOF
 ```
+
+Optional environment variables:
 
 ```sh
 tee -a.env << EOF
@@ -170,7 +182,6 @@ Create a new dataset
 ```sh
 cammcat add --sourceFolder </path/to/dataset-directory>
 ```
-
 
 
 <!-- END -->
