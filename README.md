@@ -21,7 +21,10 @@ Connect to the scicat frontend in your browser at:
 > [!NOTE]
 > Note that the base url for connecting the CLI is different:
 >
-> `https://scicat-ciren.cn.isaac.utk.edu`
+> ```
+> https://scicat-ciren.cn.isaac.utk.edu/api/v3
+>                      ^^              ^^^^^^^
+> ```
 
 
 ## Installation
@@ -94,7 +97,7 @@ tee /path/to/config.py << EOF
 # ========================================================================
 # Client settings
 # ========================================================================
-# base_url = 'https://scicat-ciren.cn.isaac.utk.edu'
+# base_url = 'https://scicat-ciren.cn.isaac.utk.edu/api/v3'
 # username = '<NetID>'
 # password = '<Password>'
 
@@ -148,7 +151,7 @@ Optional environment variables:
 ```sh
 tee -a .env << EOF
 # Environment variables override config.py
-export CAMM_BASE_URL="https://scicat-ciren.cn.isaac.utk.edu"
+export CAMM_BASE_URL="https://scicat-ciren.cn.isaac.utk.edu/api/v3"
 export CAMM_USERNAME="<NetID>"
 export CAMM_PASSWORD="<Password>"
 # export CAMM_TOKEN="<token from web GUI>"
