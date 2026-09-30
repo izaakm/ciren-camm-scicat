@@ -123,6 +123,23 @@ def cli_show(args):
         print(json.dumps(data_blocks, indent=2))
 
 
+def cli_login(args):
+    from cammcat.settings import load_settings
+    from cammcat.client import get_client
+    from cammcat.models import ListOfDatasets
+
+    settings = load_settings(args.config_file, os.environ, args)
+    logger.debug(settings)
+
+    client = get_client(
+        token=settings.token,
+        username=settings.username,
+        password=settings.password,
+        base_url=settings.base_url
+    )
+    client.login()
+
+
 def cli_list(args):
     from cammcat.settings import load_settings
     from cammcat.client import get_client
@@ -257,6 +274,9 @@ def cli():
 
     parse_show = subparsers.add_parser('show')
     parse_show.set_defaults(func=cli_show)
+
+    parse_login = subparsers.add_parser('login')
+    parse_login.set_defaults(func=cli_login)
 
     parse_list = subparsers.add_parser('list')
     parse_list.set_defaults(func=cli_list)
