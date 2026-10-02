@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 # ========================================================================
 # CLI
 # ========================================================================
+def cli_add_dataset_to_repository(args):
+    pass
+
 def cli_create(args):
     from cammcat.settings import load_settings
     from cammcat.models import new_dataset, get_data_block
@@ -281,6 +284,9 @@ def cli():
     parse_help = subparsers.add_parser('help')
     parse_help.set_defaults(func=cli_help)
 
+    parse_add = subparsers.add_parser('add')
+    parse_add.set_defaults(func=cli_add_dataset_to_repository)
+
     parse_create = subparsers.add_parser('create')
     parse_create.set_defaults(func=cli_create)
 
@@ -302,7 +308,7 @@ def cli():
     parse_update = subparsers.add_parser('update')
     parse_update.set_defaults(func=cli_update)
 
-    # Add [dataset]
+    # Create a new dataset in the SciCat metadata database.
     parse_create = create_dataset_args(parse_create)
     # Others
     parse_create.add_argument('--chkAlg', type=str)
