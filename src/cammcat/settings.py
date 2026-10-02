@@ -11,6 +11,7 @@ _env_camm_token = 'CAMM_TOKEN'
 _env_camm_username = 'CAMM_USERNAME'
 _env_camm_password = 'CAMM_PASSWORD'
 _env_camm_base_url = 'CAMM_BASE_URL'
+_env_camm_repo = "CAMM_REPO"
 
 
 # # owner vs contact ??? ~> PI? ~> createdBy?
