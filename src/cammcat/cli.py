@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # ========================================================================
 # CLI
 # ========================================================================
-def cli_add(args):
+def cli_create(args):
     from cammcat.settings import load_settings
     from cammcat.models import new_dataset, get_data_block
     from cammcat.client import get_client
@@ -221,7 +221,7 @@ def parse_log_level(value, default=logging.WARNING):
         return default
 
 
-def add_dataset_args(parser):
+def create_dataset_args(parser):
     # Add [dataset]
     # Metadata => Required
     parser.add_argument('--contactEmail', type=str)
@@ -281,8 +281,8 @@ def cli():
     parse_help = subparsers.add_parser('help')
     parse_help.set_defaults(func=cli_help)
 
-    parse_add = subparsers.add_parser('add')
-    parse_add.set_defaults(func=cli_add)
+    parse_create = subparsers.add_parser('create')
+    parse_create.set_defaults(func=cli_create)
 
     parse_config = subparsers.add_parser('config')
     parse_config.set_defaults(func=cli_config)
@@ -303,9 +303,9 @@ def cli():
     parse_update.set_defaults(func=cli_update)
 
     # Add [dataset]
-    parse_add = add_dataset_args(parse_add)
+    parse_create = create_dataset_args(parse_create)
     # Others
-    parse_add.add_argument('--chkAlg', type=str)
+    parse_create.add_argument('--chkAlg', type=str)
 
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
@@ -336,7 +336,7 @@ def cli():
     parse_show.add_argument('dataset_id', type=str, nargs='*')
     parse_show.add_argument('--data-blocks', help='Also show the files for the dataset.', action='store_true')
 
-    parse_update = add_dataset_args(parse_update)
+    parse_update = create_dataset_args(parse_update)
 
     args = parser.parse_args()
     # print(args)
