@@ -7,15 +7,28 @@ from cammcat.models import CAMMDataset
 
 logger = logging.getLogger(__name__)
 
+
 def get_key():
     # 20 bytes => 40 hex characters
     return os.urandom(20).hex()
 
 
-def get_dest_path(parent=None, key=None, name=None):
-    path = Path()
-    if parent:
-        path /= parent
+def get_dest_path(parent='.', key=None, name=None):
+    '''
+    Parameters
+    ----------
+    parent: pathlib.Path|str
+        Default: current working directory.
+    key: str
+    name: str
+
+    Returns
+    -------
+    pathlib.Path
+        Returns a git-like path for the directory `name`:
+        '{parent}/{key[:2]}/{key[2:]}/{name}'
+    '''
+    path = Path(parent)
     if key:
         path /= f'{key[:2]}/{key[2:]}'
     if name:
@@ -46,11 +59,12 @@ def copy_dataset(src, dst, ignore=None, dry_run=False):
             ignore = shutil.ignore_patterns(*ignore)
 
         shutil.copytree(
-            src, 
+            src,
             dst,
             ignore=ignore
         )
 
-    logger.info(f"Directory copied successfully")
+        logger.info(f"Directory copied successfully")
+
     return dst
 
