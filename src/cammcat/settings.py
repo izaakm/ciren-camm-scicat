@@ -1,9 +1,13 @@
+import logging
 import os
 import runpy
+import pathlib
 
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal
 from pydantic import BaseModel, ConfigDict, Field
+
+logger = logging.getLogger(__name__)
 
 # Some names of environment variables.
 _env_camm_config_file = 'CAMM_CONFIG_FILE'
@@ -163,6 +167,7 @@ class Settings(BaseModel):
     token: str|None = None
     username: str|None = None
     password: str|None = None
+    camm_repo: pathlib.Path|None = None
 
     # Dataset settings
     # owner vs contact ??? ~> PI? ~> createdBy?
@@ -270,10 +275,12 @@ def settings_from_namespace(namespace):
 def merge_settings(*settings, dropna=True):
     data = {}
     for d in settings:
+        logger.debug('Loading settings: %s' % d)
         if dropna:
             data.update({k:v for k,v in d.items() if v})
         else:
             data.update(d)
+    logger.debug('Combined settings %s' % data)
     return Settings(**data)
 
 
