@@ -4,6 +4,7 @@
 import argparse
 import logging
 import os
+import pathlib
 import time
 import sys
 
@@ -12,7 +13,8 @@ from cammcat.settings import (
     _env_camm_token,
     _env_camm_username,
     _env_camm_password,
-    _env_camm_base_url
+    _env_camm_base_url,
+    _env_camm_repo
 )
 
 
@@ -22,7 +24,42 @@ logger = logging.getLogger(__name__)
 # CLI
 # ========================================================================
 def cli_add_dataset_to_repository(args):
-    pass
+    import os
+
+    from cammcat.settings import load_settings
+    from cammcat.models import new_dataset, get_data_block
+    from cammcat.client import get_client
+    from cammcat import datasets
+    from pyscicat.client import ScicatCommError
+
+    settings = load_settings(args.config_file, os.environ, args)
+    logger.debug(settings)
+
+    key = datasets.get_key()
+    logger.debug(key)
+
+    if os.path.isdir(settings.sourceFolder):
+        name = os.path.basename(settings.sourceFolder)
+    else:
+        raise ValueError(f'--sourceFolder must be a directory, you gave "{settings.sourceFolder}"')
+
+    dest = datasets.get_dest_path(
+        parent=settings.camm_repo,
+        key=key,
+        name=name
+    )
+    print(dest)
+
+    if not os.path.isdir(settings.camm_repo):
+        raise FileNotFoundError(f'CAMM Repo does not exist: "{settings.camm_repo}"')
+
+    datasets.copy_dataset(
+        settings.sourceFolder,
+        dest,
+        ignore=None,
+        dry_run=args.dry_run
+    )
+
 
 def cli_create(args):
     from cammcat.settings import load_settings
@@ -233,7 +270,11 @@ def create_dataset_args(parser):
     parser.add_argument('--owner', type=str)
     parser.add_argument('--ownerGroup', type=str)
     parser.add_argument('--principalInvestigator', type=str)
-    parser.add_argument('--sourceFolder', type=str)
+    parser.add_argument(
+        '--sourceFolder',
+        type=str,
+        required=True
+    )
     # Metadata => Optional
     # createdBy=createdBy,                        # Error: ... "should not exist"???
     # history=history,                            # Error: ... "should not exist"???
@@ -284,7 +325,10 @@ def cli():
     parse_help = subparsers.add_parser('help')
     parse_help.set_defaults(func=cli_help)
 
-    parse_add = subparsers.add_parser('add')
+    parse_add = subparsers.add_parser(
+        'add',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parse_add.set_defaults(func=cli_add_dataset_to_repository)
 
     parse_create = subparsers.add_parser('create')
@@ -317,12 +361,35 @@ def cli():
     parse_config_list = parse_config_subparsers.add_parser('list')
     parse_config_list.set_defaults(func=cli_config_list)
 
+    # ========================================================================
+    # Help
+    # ========================================================================
     parse_help.add_argument(
         'topic',
         nargs='?',
         choices=['format', 'settings']
     )
 
+    # ========================================================================
+    # Add dataset to respository
+    # ========================================================================
+    parse_add.add_argument(
+        '--sourceFolder',
+        help="Source directory to copy into data respository.",
+        type=str,
+        required=True
+    )
+    parse_add.add_argument(
+        '--camm-repository',
+        dest='camm_repo',
+        help="Destination directory for the data.",
+        type=pathlib.Path,
+        default=os.getenv(_env_camm_repo)
+    )
+
+    # ========================================================================
+    # List datasets
+    # ========================================================================
     parse_list.add_argument(
         '--fields', '--format', '-f',
         help='Comma separated list of fields (not case sensitive).',
@@ -332,6 +399,9 @@ def cli():
     parse_list.add_argument('--sep', type=str, default='\t')
     parse_list.add_argument('--parsable', '-p', dest='sep', action='store_const', const='|')
 
+    # ========================================================================
+    # List files
+    # ========================================================================
     parse_list_files.add_argument(
         'dataset_id',
         help='List the files associated with the dataset PID(s). If no PID is given, list all files for all datasets.',
@@ -339,11 +409,20 @@ def cli():
         nargs='*'
     )
 
+    # ========================================================================
+    # Show dataset
+    # ========================================================================
     parse_show.add_argument('dataset_id', type=str, nargs='*')
     parse_show.add_argument('--data-blocks', help='Also show the files for the dataset.', action='store_true')
 
+    # ========================================================================
+    # Update dataset
+    # ========================================================================
     parse_update = create_dataset_args(parse_update)
 
+    # ========================================================================
+    # Parse args
+    # ========================================================================
     args = parser.parse_args()
     # print(args)
 
