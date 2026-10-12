@@ -62,6 +62,9 @@ def cli_add_dataset_to_repository(args):
 
 
 def cli_create(args):
+    '''
+    Create a new metadata record for a dataset.
+    '''
     from cammcat.settings import load_settings
     from cammcat.models import new_dataset, get_data_block
     from cammcat.client import get_client
@@ -283,7 +286,11 @@ def create_dataset_args(parser):
     parser.add_argument('--classification', type=str)
     parser.add_argument('--createdAt', type=str)
     parser.add_argument('--dataFormat', type=str)
-    parser.add_argument('--datasetName', type=str)
+    parser.add_argument(
+        '--datasetName',
+        type=str,
+        required=True
+    )
     parser.add_argument('--description', type=str)
     parser.add_argument('--endTime', type=str)
     parser.add_argument('--instrumentGroup', type=str)
