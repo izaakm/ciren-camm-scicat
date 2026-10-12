@@ -64,7 +64,6 @@ from pyscicat.model import (
 )
 
 from cammcat.settings import standardize_setting_names
-# from cammcat.datasets import sha256sum
 from cammcat import datasets
 
 # ========================================================================
@@ -161,7 +160,7 @@ def get_size(sourceFolder):
     return size
 
 
-def get_data_file_from_path(filepath, chkAlg=None, **kwargs):
+def get_data_file_from_path(filepath, chkAlg=None, relative_to=None, **kwargs):
     '''
     class DataFile(MongoQueryable):
         """
@@ -176,6 +175,11 @@ def get_data_file_from_path(filepath, chkAlg=None, **kwargs):
         gid: Optional[str] = None
         perm: Optional[str] = None
     '''
+    if relative_to:
+        path = os.path.relpath(filepath, start=relative_to)
+    else:
+        path = filepath
+
     stats = os.stat(filepath)
     # os.stat_result(st_mode=33188, st_ino=7876932, st_dev=234881026,
     # st_nlink=1, st_uid=501, st_gid=501, st_size=264, st_atime=1297230295,
@@ -193,7 +197,7 @@ def get_data_file_from_path(filepath, chkAlg=None, **kwargs):
         raise NotImplementedError(f'Checksum algorithm not implemented: {chkAlg}')
 
     return DataFile(
-        path=filepath,
+        path=path,
         size=stats.st_size,
         time=datetime.fromtimestamp(stats.st_mtime, tz=timezone.utc).isoformat(), # schema requires str|None
         chk=chk,                            # Checksum?
@@ -207,7 +211,7 @@ def get_data_file_from_path(filepath, chkAlg=None, **kwargs):
     )
 
 
-def get_data_block(sourceFolder, chkAlg=None, **kwargs):
+def get_data_block(sourceFolder, chkAlg=None, relative_to=None, **kwargs):
     '''
     Return a list of DataFiles
 
@@ -226,8 +230,21 @@ def get_data_block(sourceFolder, chkAlg=None, **kwargs):
     for root, dirs, files in os.walk(sourceFolder):
         for filename in files:
             filepath = os.path.join(root, filename)
-            dataFileList.append(get_data_file_from_path(filepath, **kwargs))
+            dataFileList.append(
+                get_data_file_from_path(
+                    filepath,
+                    chkAlg=chkAlg,
+                    relative_to=relative_to,
+                    **kwargs
+                )
+            )
     size = sum([f.size for f in dataFileList])
+    # print(size)
+    # print(dataFileList)
+    # print(chkAlg)
+    # Hack because pydantic seems to think chkAlg is supposed to be an int, not a str.
+    # if chkAlg == 'sha256' or chkAlg == 'sha256sum':
+    #     chkAlg = 256
     return CreateDatasetOrigDatablockDto(
         size=size,
         dataFileList=dataFileList,
@@ -236,50 +253,53 @@ def get_data_block(sourceFolder, chkAlg=None, **kwargs):
 
 
 def new_dataset(
-    # Required for RawDataset
-    contactEmail: str | None = None,
-    creationLocation: str | None = None,
-    creationTime: str | None = None,
-    owner: str | None = None,
-    sourceFolder: str | None = None,
-    principalInvestigator: str | None = None,
-    ownerGroup: str | None = None,
+        # RawDataset (Required)
+        contactEmail: str | None = None,
+        creationLocation: str | None = None,
+        creationTime: str | None = None,
+        owner: str | None = None,
+        sourceFolder: str | None = None,
+        principalInvestigator: str | None = None,
+        ownerGroup: str | None = None,
 
-    # Optional
-    accessGroups: List[str] | None = None,
-    classification: str | None = None,
-    createdAt: str | None = None,
-    createdBy: str | None = None,
-    dataFormat: str | None = None,
-    datasetName: str | None = None,
-    description: str | None = None,
-    endTime: str | None = None,
-    history: List[dict] | None = None,
-    instrumentGroup: str | None = None,
-    instrumentId: str | None = None,
-    isPublished: bool | None = False,
-    keywords: List[str] | None = None,
-    license: str | None = None,
-    numberOfFiles: int | None = None,
-    numberOfFilesArchived: int | None = None,
-    orcidOfOwner: str | None = None,
-    ownerEmail: str | None = None,
-    packedSize: int | None = None,
-    pid: str | None = None,
-    proposalId: str | None = None,
-    sampleId: str | None = None,
-    scientificMetadata: Dict | None = None,
-    sharedWith: List[str] | None = None,
-    size: int | None = None,
-    sourceFolderHost: str | None = None,
-    techniques: List[dict] | None = None,
-    type_: DatasetType = 'raw',
-    updatedAt: str | None = None,
-    updatedBy: str | None = None,
-    validationStatus: str | None = None,
-    version: str | None = None,
-    **kwargs                                    # Catch all
-):
+        # RawDataset (Optional)
+        accessGroups: List[str] | None = None,
+        classification: str | None = None,
+        createdAt: str | None = None,
+        createdBy: str | None = None,
+        dataFormat: str | None = None,
+        datasetName: str | None = None,
+        description: str | None = None,
+        endTime: str | None = None,
+        history: List[dict] | None = None,
+        instrumentGroup: str | None = None,
+        instrumentId: str | None = None,
+        isPublished: bool | None = False,
+        keywords: List[str] | None = None,
+        license: str | None = None,
+        numberOfFiles: int | None = None,
+        numberOfFilesArchived: int | None = None,
+        orcidOfOwner: str | None = None,
+        ownerEmail: str | None = None,
+        packedSize: int | None = None,
+        pid: str | None = None,
+        proposalId: str | None = None,
+        sampleId: str | None = None,
+        scientificMetadata: Dict | None = None,
+        sharedWith: List[str] | None = None,
+        size: int | None = None,
+        sourceFolderHost: str | None = None,
+        techniques: List[dict] | None = None,
+        type_: DatasetType|str = 'raw',
+        updatedAt: str | None = None,
+        updatedBy: str | None = None,
+        validationStatus: str | None = None,
+        version: str | None = None,
+
+        # Others
+        relative_to=None,
+        **kwargs                                    # Catch all
+    ):
     '''
     Questions:
     - "owner" vs "creator" vs "PI" ???
@@ -333,13 +353,18 @@ def new_dataset(
 
     size = size or get_size(sourceFolder)
 
+    if relative_to:
+        path = os.path.relpath(sourceFolder, start=relative_to)
+    else:
+        path = sourceFolder
+
     return CAMMDataset(
         # Required
         contactEmail=contactEmail,
         creationLocation=creationLocation,
         creationTime=creationTime,
         owner=owner,
-        sourceFolder=sourceFolder,
+        sourceFolder=path,
         principalInvestigator=principalInvestigator,
         ownerGroup=ownerGroup,
         # Optional
