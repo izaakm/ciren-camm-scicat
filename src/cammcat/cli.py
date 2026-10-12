@@ -71,8 +71,16 @@ def cli_create(args):
     from pyscicat.client import ScicatCommError
 
     settings = load_settings(args.config_file, os.environ, args)
-    dataset = new_dataset(**settings.model_dump())
-    data_block = get_data_block(**settings.model_dump())
+    kwargs = { **settings.model_dump() }
+    if kwargs.get('camm_repo'):
+        kwargs['relative_to'] = kwargs['camm_repo']
+    dataset = new_dataset(**kwargs)
+
+    kwargs = { **settings.model_dump() }
+    if kwargs.get('camm_repo'):
+        kwargs['relative_to'] = kwargs['camm_repo']
+    data_block = get_data_block(**kwargs)
+
     if args.dry_run:
         print(dataset.model_dump_json(indent=2))
         print(data_block.model_dump_json(indent=2))
@@ -363,6 +371,13 @@ def cli():
     parse_create = create_dataset_args(parse_create)
     # Others
     parse_create.add_argument('--chkAlg', type=str)
+    parse_create.add_argument(
+        '--camm-repository',
+        dest='camm_repo',
+        help="Destination directory for the data.",
+        type=pathlib.Path,
+        default=os.getenv(_env_camm_repo)
+    )
 
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
