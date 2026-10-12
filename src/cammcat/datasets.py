@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Union, List
 
-from cammcat.models import CAMMDataset
+# from cammcat.models import CAMMDataset
 
 
 logger = logging.getLogger(__name__)
