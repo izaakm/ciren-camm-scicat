@@ -215,6 +215,10 @@ class Settings(BaseModel):
     validationStatus: str|None = None
     version: str|None = None
 
+    # Miscellaneous
+    ## A datablock takes a chkAlg, but a dataset does not
+    chkAlg: str|None = None
+
     # model_config = ConfigDict(extra='allow')  # This is the default.
     model_config = ConfigDict(extra='ignore')
 
