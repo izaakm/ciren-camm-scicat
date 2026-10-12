@@ -1,9 +1,14 @@
+import hashlib
+import logging
 import os
 import shutil
-import logging
+import sys
 
 from pathlib import Path
+from typing import Union, List
+
 from cammcat.models import CAMMDataset
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +41,26 @@ def get_dest_path(parent='.', key=None, name=None):
     return path.expanduser()
 
 
+def _copy(src, dst, ignore=None):
+    if ignore:
+        ignore = shutil.ignore_patterns(*ignore)
+
+    shutil.copytree(
+        src,
+        dst,
+        ignore=ignore
+    )
+
+    logger.info(f"Directory copied successfully")
+
+    return None
+
+
+def _copy_dry_run(src, dst, *args, **kwargs):
+    print(f'[DRY_RUN] Would copy: "{src}" -> "{dst}"')
+    return None
+
+
 def copy_dataset(src, dst, ignore=None, dry_run=False):
     '''
     Copy src directory to dst
@@ -53,18 +78,90 @@ def copy_dataset(src, dst, ignore=None, dry_run=False):
         Returns destination path on success
     '''
     if dry_run:
-        print(f'[DRY_RUN] Would copy: "{src}" -> "{dst}"')
+        _copy_dry_run(src, dst)
     else:
-        if ignore:
-            ignore = shutil.ignore_patterns(*ignore)
-
-        shutil.copytree(
-            src,
-            dst,
-            ignore=ignore
-        )
-
-        logger.info(f"Directory copied successfully")
+        _copy(src, dst, ignore=ignore)
 
     return dst
+
+
+def sha256sum(files, chunk_size=8192):
+    '''
+    Mimic the sha256sum command.
+    
+    Parameters
+    ----------
+    files: str|list[str]
+        Single file path (str/Path) or list of file paths
+    chunk_size: int
+        Bytes to read at a time (default 8192)
+    
+    Returns
+    -------
+    list[dict[str,[str|path]]]
+        Each item is
+
+            {
+                'filepath': str|Path,
+                'sha256sum': str,
+                'message': str,
+                'error': bool
+            }
+
+        where `str` matches what `sha256sum` would print. Note that errors are
+        coerced to informative statements and returned as the `str` in the
+        tuple.
+
+    Examples
+    --------
+
+    >>> sha256sum('file.txt')
+    >>> sha256sum(['file1.txt', 'file2.txt'])
+    '''
+    if isinstance(files, (str, Path)):
+        files = [files]
+    
+    data = []
+    for filepath in files:
+        try:
+            hash_obj = hashlib.sha256()
+            
+            with open(filepath, 'rb') as f:
+                while chunk := f.read(chunk_size):
+                    hash_obj.update(chunk)
+            
+            data.append(
+                {
+                    'filepath': filepath,
+                    'sha256sum': hash_obj.hexdigest(),
+                    'message': f'{hash_obj.hexdigest()}  {filepath}'
+                }
+            )
+        
+        except FileNotFoundError:
+            data.append(
+                {
+                    'filepath': filepath,
+                    'message': f'sha256sum: {filepath}: No such file or directory',
+                    'error': True
+                }
+            )
+        except IsADirectoryError:
+            data.append(
+                {
+                    'filepath': filepath,
+                    'message': f'sha256sum: {filepath}: Is a directory',
+                    'error': True
+                }
+            )
+        except Exception as e:
+            data.append(
+                {
+                    'filepath': filepath,
+                    'message': f'sha256sum: {filepath}: {e}',
+                    'error': True
+                }
+            )
+
+    return data
 
