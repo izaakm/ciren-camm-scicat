@@ -1,49 +1,49 @@
-'''
-Init signature:
-RawDataset(
-    *,
-    # [sorted]
-    accessGroups          : List[str] | None            = None,
-    classification        : str | None                  = None,
-    contactEmail          : str,                                # Required
-    createdAt             : str | None                  = None,
-    createdBy             : str | None                  = None,
-    creationLocation      : str,                                # Required
-    creationTime          : str,                                # Required
-    dataFormat            : str | None                  = None,
-    datasetName           : str | None                  = None,
-    description           : str | None                  = None,
-    endTime               : str | None                  = None,
-    history               : List[dict] | None           = None,
-    instrumentGroup       : str | None                  = None,
-    instrumentId          : str | None                  = None,
-    isPublished           : bool | None                 = False,
-    keywords              : List[str] | None            = None,
-    license               : str | None                  = None,
-    numberOfFiles         : int | None                  = None,
-    numberOfFilesArchived : int | None                  = None,
-    orcidOfOwner          : str | None                  = None,
-    owner                 : str,                                # Required
-    ownerEmail            : str | None                  = None,
-    ownerGroup            : str,                                # Required
-    packedSize            : int | None                  = None,
-    pid                   : str | None                  = None,
-    principalInvestigator : str,                                # Required
-    proposalId            : str | None                  = None,
-    sampleId              : str | None                  = None,
-    scientificMetadata    : Dict | None                 = None,
-    sharedWith            : List[str] | None            = None,
-    size                  : int | None                  = None,
-    sourceFolder          : str,                                # Required
-    sourceFolderHost      : str | None                  = None,
-    techniques            : List[dict] | None           = None,
-    type                  : pyscicat.model.DatasetType  = <DatasetType.raw:'raw'>,
-    updatedAt             : str | None                  = None,
-    updatedBy             : str | None                  = None,
-    validationStatus      : str | None                  = None,
-    version               : str | None                  = None,
-) -> None
-'''
+# '''
+# Init signature:
+# RawDataset(
+#     *,
+#     # [sorted]
+#     accessGroups          : List[str] | None            = None,
+#     classification        : str | None                  = None,
+#     contactEmail          : str,                                # Required
+#     createdAt             : str | None                  = None,
+#     createdBy             : str | None                  = None,
+#     creationLocation      : str,                                # Required
+#     creationTime          : str,                                # Required
+#     dataFormat            : str | None                  = None,
+#     datasetName           : str
+#     description           : str | None                  = None,
+#     endTime               : str | None                  = None,
+#     history               : List[dict] | None           = None,
+#     instrumentGroup       : str | None                  = None,
+#     instrumentId          : str | None                  = None,
+#     isPublished           : bool | None                 = False,
+#     keywords              : List[str] | None            = None,
+#     license               : str | None                  = None,
+#     numberOfFiles         : int | None                  = None,
+#     numberOfFilesArchived : int | None                  = None,
+#     orcidOfOwner          : str | None                  = None,
+#     owner                 : str,                                # Required
+#     ownerEmail            : str | None                  = None,
+#     ownerGroup            : str,                                # Required
+#     packedSize            : int | None                  = None,
+#     pid                   : str | None                  = None,
+#     principalInvestigator : str,                                # Required
+#     proposalId            : str | None                  = None,
+#     sampleId              : str | None                  = None,
+#     scientificMetadata    : Dict | None                 = None,
+#     sharedWith            : List[str] | None            = None,
+#     size                  : int | None                  = None,
+#     sourceFolder          : str,                                # Required
+#     sourceFolderHost      : str | None                  = None,
+#     techniques            : List[dict] | None           = None,
+#     type                  : pyscicat.model.DatasetType  = <DatasetType.raw:'raw'>,
+#     updatedAt             : str | None                  = None,
+#     updatedBy             : str | None                  = None,
+#     validationStatus      : str | None                  = None,
+#     version               : str | None                  = None,
+# ) -> None
+# '''
 
 import os
 
@@ -64,6 +64,8 @@ from pyscicat.model import (
 )
 
 from cammcat.settings import standardize_setting_names
+# from cammcat.datasets import sha256sum
+from cammcat import datasets
 
 # ========================================================================
 # Dataset
@@ -178,11 +180,18 @@ def get_data_file_from_path(filepath, chkAlg=None, **kwargs):
     # os.stat_result(st_mode=33188, st_ino=7876932, st_dev=234881026,
     # st_nlink=1, st_uid=501, st_gid=501, st_size=264, st_atime=1297230295,
     # st_mtime=1297230027, st_ctime=1297230027)
-    if chkAlg:
-        # [TODO] Calc checksum
-        chk = 'NOT_IMPLEMENTED'
-    else:
+
+    if chkAlg is None:
         chk = None
+    elif chkAlg.casefold().startswith('sha256'):
+        res = datasets.sha256sum(filepath)[0]
+        # print(res)
+        if not res.get('sha256sum') or res.get('error'):
+            raise Exception(res['message'])
+        chk = res['sha256sum']
+    else:
+        raise NotImplementedError(f'Checksum algorithm not implemented: {chkAlg}')
+
     return DataFile(
         path=filepath,
         size=stats.st_size,
