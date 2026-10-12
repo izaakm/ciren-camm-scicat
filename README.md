@@ -212,5 +212,13 @@ Output (PID of dataset):
 PID.SAMPLE.PREFIX/6a8afda8-4a15-4935-885a-5a426757a141
 ```
 
+Bugs
+========================================================================
+
+`pip install pyscicat>=0.4.8`
+: The pypi package was udpated on May 28, 2025; the github repo still shows
+  most recent release as 0.4.8, but changes have been added since then.
+: Solution: use `pip install git+https:https://github.com/SciCatProject/pyscicat`
+
 
 <!-- END -->
