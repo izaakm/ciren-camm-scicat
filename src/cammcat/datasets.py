@@ -85,6 +85,46 @@ def copy_dataset(src, dst, ignore=None, dry_run=False):
     return dst
 
 
+# [TODO] Switch checksums to a class.
+class Checksums:
+    '''
+    Calculate checksums. Store them. Write them to disk to match `sha256sum` format. Verify them.
+
+    Examples
+    --------
+
+    >>> os.chdir('srcdir')
+    >>> sha256sum = Checksums()
+    >>> sha256sum.calc(glob('srcdir/**'))
+    >>> # copy files
+    >>> os.chdir('dstdir')
+    >>> sha256sum.verify()
+    >>> sha256sum.write('dstdir.sha256')
+    '''
+    def __init__(self, algorithm='sha256'):
+        self.algorithm = algorithm
+        self.data = {}
+
+    def calc(self, files, chunk_size=8192):
+        pass
+
+    def write(self, outpath):
+        pass
+
+    def verify(self, chunk_size=8192):
+        '''
+        You want to be able to verify checksums after copying the files, so the
+        "files" (paths) need to be relative, e.g.:
+
+            cd srcdir
+            checksums ....
+            cp srcdir/ dstdir/
+            cd dstdir
+            verify
+        '''
+        pass
+
+
 def sha256sum(files, chunk_size=8192):
     '''
     Mimic the sha256sum command.
