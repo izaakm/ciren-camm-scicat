@@ -53,12 +53,24 @@ def cli_add_dataset_to_repository(args):
     if not os.path.isdir(settings.camm_repo):
         raise FileNotFoundError(f'CAMM Repo does not exist: "{settings.camm_repo}"')
 
+    # [TODO] Get checksums before copying data
+
     datasets.copy_dataset(
         settings.sourceFolder,
         dest,
         ignore=None,
         dry_run=args.dry_run
     )
+    
+    # [TODO] Write the checksums ...
+    # - into the destination directory?
+    #     repo/toy
+    #     repo/toy/checksums
+    # - or next to the destination directory?
+    #     repo/toy
+    #     repo/toy.checksums
+
+    # [TODO] Optional, also validate checksums after copying data
 
 
 def cli_create(args):
@@ -71,6 +83,9 @@ def cli_create(args):
     from pyscicat.client import ScicatCommError
 
     settings = load_settings(args.config_file, os.environ, args)
+
+    # [TODO] Each 'kind' of dataset could have it's own 'new_dataset' function
+    # to automatically extract metadata.
     kwargs = { **settings.model_dump() }
     if kwargs.get('camm_repo'):
         kwargs['relative_to'] = kwargs['camm_repo']
@@ -370,7 +385,11 @@ def cli():
     # Create a new dataset in the SciCat metadata database.
     parse_create = create_dataset_args(parse_create)
     # Others
-    parse_create.add_argument('--chkAlg', type=str)
+    parse_create.add_argument(
+        '--chkAlg',
+        help='Calculate checksums using given algorithm.',
+        choices=['sha256']
+    )
     parse_create.add_argument(
         '--camm-repository',
         dest='camm_repo',
@@ -407,6 +426,22 @@ def cli():
         help="Destination directory for the data.",
         type=pathlib.Path,
         default=os.getenv(_env_camm_repo)
+    )
+    parse_add.add_argument(
+        '--chkAlg',
+        help='Use this checksum algorithm.',
+        choices=['sha256'],
+        default='sha256'
+    )
+    parse_add.add_argument(
+        '--checksums',
+        help='Calculate checksums from original data files using given algorithm.',
+        action='store_true',
+    )
+    parse_add.add_argument(
+        '--verify-checksums',
+        help='Verify checksums after the data is copied. This also sets "--checksums".',
+        action='store_true'
     )
 
     # ========================================================================
