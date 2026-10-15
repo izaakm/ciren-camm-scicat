@@ -42,14 +42,26 @@ def get_dest_path(parent='.', key=None, name=None):
 
 
 def _copy(src, dst, ignore=None):
-    if ignore:
-        ignore = shutil.ignore_patterns(*ignore)
+    if os.path.exists(dst) and not os.path.isdir(dst):
+        raise NotADirectoryError(f'The destination is not a directory: {dst}')
 
-    shutil.copytree(
-        src,
-        dst,
-        ignore=ignore
-    )
+    if os.path.isdir(src):
+        # Copy directory and its contents.
+        # copytree: "All intermediate directories needed to contain dst will also be created by default."
+        if ignore:
+            ignore = shutil.ignore_patterns(*ignore)
+        shutil.copytree(
+            src,
+            dst,
+            ignore=ignore
+        )
+    else:
+        # Copy file.
+        os.makedirs(dst, exist_ok=True)
+        shutil.copy2(
+            src,
+            dst
+        )
 
     logger.info(f"Directory copied successfully")
 
