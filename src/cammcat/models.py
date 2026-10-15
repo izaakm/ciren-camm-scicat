@@ -66,7 +66,7 @@ from pyscicat.model import (
 
 from cammcat.datatypes import nexus
 from cammcat.settings import standardize_setting_names
-from cammcat import datasets
+from cammcat import utils
 
 # ========================================================================
 # Dataset
@@ -199,7 +199,7 @@ def get_data_file_from_path(filepath, chkAlg=None, relative_to=None, **kwargs):
     if chkAlg is None:
         chk = None
     elif chkAlg.casefold().startswith('sha256'):
-        res = datasets.sha256sum(filepath)[0]
+        res = utils.sha256sum(filepath)[0]
         # print(res)
         if not res.get('sha256sum') or res.get('error'):
             raise Exception(res['message'])

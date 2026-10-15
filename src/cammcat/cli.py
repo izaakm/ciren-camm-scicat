@@ -29,13 +29,13 @@ def cli_add_dataset_to_repository(args):
     from cammcat.settings import load_settings
     from cammcat.models import new_dataset, get_data_block
     from cammcat.client import get_client
-    from cammcat import datasets
+    from cammcat import utils
     from pyscicat.client import ScicatCommError
 
     settings = load_settings(args.config_file, os.environ, args)
     logger.debug(settings)
 
-    key = datasets.get_key()
+    key = utils.get_key()
     logger.debug(key)
 
     if args.sourceFolder:
@@ -64,7 +64,7 @@ def cli_add_dataset_to_repository(args):
         sys.tracebacklimit = 0
         raise ValueError(f'--camm-repository is required.')
 
-    dest = datasets.get_dest_path(
+    dest = utils.get_dest_path(
         parent=settings.camm_repo,
         key=key,
         name=name
@@ -76,7 +76,7 @@ def cli_add_dataset_to_repository(args):
 
     # [TODO] Get checksums before copying data
 
-    datasets.copy_dataset(
+    utils.copy_dataset(
         source,
         dest,
         ignore=None,
