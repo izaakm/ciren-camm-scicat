@@ -113,17 +113,21 @@ class Checksums:
     >>> sha256sum.verify()
     >>> sha256sum.write('dstdir.sha256')
     '''
-    def __init__(self, algorithm='sha256'):
+    def __init__(self, root='.', algorithm='sha256'):
+        self.root = root
         self.algorithm = algorithm
         self.data = {}
 
     def calc(self, files, chunk_size=8192):
+        # When storing the checksums, the path to the file should be relative
+        # to self.root; this makes it easy to verify checksums after copying
+        # files to a new directory.
         pass
 
     def write(self, outpath):
         pass
 
-    def verify(self, chunk_size=8192):
+    def verify(self, root=None, chunk_size=8192):
         '''
         You want to be able to verify checksums after copying the files, so the
         "files" (paths) need to be relative, e.g.:
@@ -133,7 +137,13 @@ class Checksums:
             cp srcdir/ dstdir/
             cd dstdir
             verify
+
+        Parameters
+        ----------
+        root: str|Path
+            Filepaths are relative to root. By default, use `self.root="."`
         '''
+        root = root or self.root
         pass
 
 
