@@ -38,17 +38,38 @@ def cli_add_dataset_to_repository(args):
     key = datasets.get_key()
     logger.debug(key)
 
-    if os.path.isdir(settings.sourceFolder):
-        name = os.path.basename(settings.sourceFolder)
+    if args.sourceFolder:
+        if args.sourceFolder.is_dir():
+            name = args.sourceFolder.name
+            source = args.sourceFolder
+        else:
+            sys.tracebacklimit = 0
+            raise ValueError(f'--sourceFolder is not a directory or does not exist: {args.sourceFolder}')
+    elif args.sourceFile:
+        if args.sourceFile.is_file():
+            name = args.sourceFile.stem
+            source = args.sourceFile
+        else:
+            sys.tracebacklimit = 0
+            raise ValueError(f'--soureFile is not a file or does not exist: {args.sourceFile}')
     else:
-        raise ValueError(f'--sourceFolder must be a directory, you gave "{settings.sourceFolder}"')
+        sys.tracebacklimit = 0
+        raise ValueError(
+            'You must provide either --sourceFolder or --sourceFile; you gave:\n'
+            f'--sourceFolder={args.sourceFolder}\n'
+            f'--sourceFile={args.sourceFile}'
+        )
+
+    if not settings.camm_repo:
+        sys.tracebacklimit = 0
+        raise ValueError(f'--camm-repository is required.')
 
     dest = datasets.get_dest_path(
         parent=settings.camm_repo,
         key=key,
         name=name
     )
-    print(dest)
+    # print(dest)
 
     if not os.path.isdir(settings.camm_repo):
         raise FileNotFoundError(f'CAMM Repo does not exist: "{settings.camm_repo}"')
@@ -56,7 +77,7 @@ def cli_add_dataset_to_repository(args):
     # [TODO] Get checksums before copying data
 
     datasets.copy_dataset(
-        settings.sourceFolder,
+        source,
         dest,
         ignore=None,
         dry_run=args.dry_run
@@ -72,6 +93,9 @@ def cli_add_dataset_to_repository(args):
 
     # [TODO] Optional, also validate checksums after copying data
 
+
+def cli_attach_datafiles_to_dataset(args):
+    raise NotImplementedError('Attach command not implemented yet.')
 
 def cli_create(args):
     '''
@@ -89,12 +113,19 @@ def cli_create(args):
     kwargs = { **settings.model_dump() }
     if kwargs.get('camm_repo'):
         kwargs['relative_to'] = kwargs['camm_repo']
+    if args.datasetName == '.':
+        kwargs['datasetName'] = os.path.basename(settings.sourceFolder)
     dataset = new_dataset(**kwargs)
 
     kwargs = { **settings.model_dump() }
     if kwargs.get('camm_repo'):
         kwargs['relative_to'] = kwargs['camm_repo']
     data_block = get_data_block(**kwargs)
+
+    if args.metadata_file:
+        dataset.update_metadata_from_file(
+            args.metadata_file
+        )
 
     if args.dry_run:
         print(dataset.model_dump_json(indent=2))
@@ -311,6 +342,7 @@ def create_dataset_args(parser):
     parser.add_argument('--dataFormat', type=str)
     parser.add_argument(
         '--datasetName',
+        help='Name of dataset as it appears in the metadata (human readable). If ".", use the basename of the --sourceFolder.',
         type=str,
         required=True
     )
@@ -361,6 +393,12 @@ def cli():
     )
     parse_add.set_defaults(func=cli_add_dataset_to_repository)
 
+    parse_attach_datafiles = subparsers.add_parser(
+        'attach',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parse_attach_datafiles.set_defaults(func=cli_attach_datafiles_to_dataset)
+
     parse_create = subparsers.add_parser('create')
     parse_create.set_defaults(func=cli_create)
 
@@ -397,6 +435,12 @@ def cli():
         type=pathlib.Path,
         default=os.getenv(_env_camm_repo)
     )
+    parse_create.add_argument(
+        '--get-metadata-from-file',
+        dest='metadata_file',
+        help='Path to file. Extract metadata to this file and add it to the dataset.',
+        type=pathlib.Path
+    )
 
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
@@ -413,12 +457,20 @@ def cli():
 
     # ========================================================================
     # Add dataset to respository
+    # [IN PROGRESS] Also needs to handle individual files as "datasets"???
+    # [TODO] Optional: Instead of copying the 'sourceFolder', tar everything up
+    # so the repository has only tar files. Or possibly hdf5 files???
     # ========================================================================
-    parse_add.add_argument(
+    parse_add_source_file_or_folder = parse_add.add_mutually_exclusive_group(required=True)
+    parse_add_source_file_or_folder.add_argument(
         '--sourceFolder',
         help="Source directory to copy into data respository.",
-        type=str,
-        required=True
+        type=pathlib.Path
+    )
+    parse_add_source_file_or_folder.add_argument(
+        '--sourceFile',
+        help='Copy the given file into the data repository.',
+        type=pathlib.Path,
     )
     parse_add.add_argument(
         '--camm-repository',
