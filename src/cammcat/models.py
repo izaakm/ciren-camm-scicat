@@ -48,6 +48,7 @@
 import os
 
 # from os.path import join, getsize
+from pathlib import Path
 
 from collections import UserList
 from datetime import datetime, timezone
@@ -63,6 +64,7 @@ from pyscicat.model import (
     RawDataset,
 )
 
+from cammcat.datatypes import nexus
 from cammcat.settings import standardize_setting_names
 from cammcat import datasets
 
@@ -74,12 +76,21 @@ from cammcat import datasets
 
 
 class CAMMDataset(RawDataset):
-    scientificMetadata: Optional[dict[str,Any]] = None
+    scientificMetadata: Optional[dict[str,Any]] = {}
 
     def get(self, key, default=None):
         if hasattr(self, key):
             return getattr(self, key)
         return default
+
+    def update_metadata_from_file(self, filepath:Path):
+        if self.scientificMetadata is None:
+            self.scientificMetadata = {}
+        if filepath.suffix == '.nxs':
+            metadata = nexus.get_metadata_from_nexus_file(filepath)
+            self.scientificMetadata.update(metadata)
+        else:
+            raise NotImplementedError(f'Cannot extract metadata file type "{filepath.suffix}": {filepath}')
 
     def to_json(self):
         pass
