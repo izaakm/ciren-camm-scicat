@@ -2,10 +2,12 @@ import logging
 import os
 import runpy
 import pathlib
+import sys
 
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -175,7 +177,7 @@ class Settings(BaseModel):
     creationLocation: str|None = None
     creationTime: str|None = Field(default_factory=utcnow)
     owner: str|None = None
-    sourceFolder: str|None = None
+    sourceFolder: str|pathlib.Path|None = None
     principalInvestigator: str|None = None
     ownerGroup: str|None = None
     accessGroups: List[str]|None = None
@@ -285,7 +287,13 @@ def merge_settings(*settings, dropna=True):
         else:
             data.update(d)
     logger.debug('Combined settings %s' % data)
-    return Settings(**data)
+
+    try:
+        return Settings(**data)
+    except ValidationError as e:
+        sys.tracebacklimit = 0
+        msg = f'data={data}'
+        raise Exception(msg) from e
 
 
 def load_settings(config_file, env_config, cli_config, dropna=True, errors='raise'):
