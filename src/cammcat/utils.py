@@ -98,6 +98,16 @@ def copy_dataset(src, dst, ignore=None, dry_run=False):
 
 
 # [TODO] Switch checksums to a class.
+def _sha256sum(filepath, chunk_size=8192):
+    hash_obj = hashlib.sha256()
+
+    with open(filepath, 'rb') as f:
+        while chunk := f.read(chunk_size):
+            hash_obj.update(chunk)
+
+    return hash_obj.hexdigest()
+
+
 class Checksums:
     '''
     Calculate checksums. Store them. Write them to disk to match `sha256sum` format. Verify them.
@@ -107,25 +117,87 @@ class Checksums:
 
     >>> os.chdir('srcdir')
     >>> sha256sum = Checksums()
-    >>> sha256sum.calc(glob('srcdir/**'))
+    >>> sha256sum.hash_files(glob('srcdir/**'))
     >>> # copy files
     >>> os.chdir('dstdir')
     >>> sha256sum.verify()
     >>> sha256sum.write('dstdir.sha256')
     '''
-    def __init__(self, root='.', algorithm='sha256'):
-        self.root = root
+    def __init__(self, root='.', algorithm='sha256', data=None):
+        self.root = Path(root)
         self.algorithm = algorithm
-        self.data = {}
 
-    def calc(self, files, chunk_size=8192):
+        # Use dict to ensure one hash per filepath.
+        if isinstance(data, dict):
+            self.data = data
+        else:
+            self.data = {}
+
+        if self.algorithm == 'sha256':
+            self._hash_func = _sha256sum
+        else:
+            raise NotImplementedError(f'Hash algorithm is not implemented: {algorithm}')
+
+    def __repr__(self):
+        return self.data.__repr__()
+
+    def hash_files(self, files, chunk_size=8192):
+        '''
+        Compute hash values for the given files. Results are stored in the
+        `data` attribute. Filepaths are stored relative to the path given by
+        the `root` attribute.
+
+        Parameters
+        ----------
+        files: list
+            List of filepaths. Directories will be ignored.
+        chunk_size: int
+
+        Returns
+        -------
+        None
+        '''
         # When storing the checksums, the path to the file should be relative
         # to self.root; this makes it easy to verify checksums after copying
         # files to a new directory.
-        pass
+        for filepath in files:
+            # For convenience, avoid directories rather than raising an error
+            # so that the user can just pass 'dirname.rglob('*')'.
+            if filepath.is_dir():
+                continue
+            relpath = filepath.relative_to(self.root)
+            # print(relpath)
+            hash = self._hash_func(filepath)
+            self.data[f'{relpath}'] = {
+                'filepath': relpath,
+                f'{self.algorithm}sum': hash,
+                'message': f'{hash}  {relpath}'
+            }
 
-    def write(self, outpath):
-        pass
+    def _to_string(self):
+        '''
+        Format output.
+        '''
+        return '\n'.join([item['message'] for item in self.data.values()])
+
+    def write(self, outpath=None):
+        '''
+        Write checksums to file.
+
+        Parameters
+        ----------
+        outpath: str,Path,None
+            Path to output file. If None, write to stdout.
+
+        Returns
+        -------
+        None
+        '''
+        if outpath is None:
+            print(self._to_string())
+        else:
+            with open(outpath, 'w') as f:
+                print(self._to_string(), file=f)
 
     def verify(self, root=None, chunk_size=8192):
         '''
@@ -142,22 +214,66 @@ class Checksums:
         ----------
         root: str|Path
             Filepaths are relative to root. By default, use `self.root="."`
+        chunck_size: int
+
+        Returns
+        -------
+        int
+            0: success (all checksums matched)
+            1: error(s) (one or more checksums did not match)
         '''
+        res = 0
         root = root or self.root
-        pass
+        for key, item in self.data.items():
+            relpath = item['filepath']
+            filepath = self.root / relpath
+            try:
+                hash = self._hash_func(filepath)
+                if hash == item[f'{self.algorithm}sum']:
+                    print(f'{relpath}: OK')
+                else:
+                    res = 1
+                    print(f'{relpath}: FAILED')
+            except FileNotFoundError:
+                res = 1
+                print(f'{relpath}: No such file or directory')
+            except IsADirectoryError:
+                res = 1
+                print(f'{relpath}: Is a directory')
+        return res
+
+    @classmethod
+    def read(cls, filepath, algorithm='sha256'):
+        '''
+        Read checkusms from file.
+
+        Returns
+        -------
+        Checksums
+        '''
+        data = {}
+        with open(filepath) as f:
+            for line in f.readlines():
+                hash, target_path = line.strip().split(maxsplit=1)
+                data[target_path] = {
+                    'filepath': target_path,
+                    f'{algorithm}sum': hash,
+                    'message': line.strip()
+                }
+        return cls(root=os.path.dirname(filepath), algorithm=algorithm, data=data)
 
 
 def sha256sum(files, chunk_size=8192):
     '''
     Mimic the sha256sum command.
-    
+
     Parameters
     ----------
     files: str|list[str]
         Single file path (str/Path) or list of file paths
     chunk_size: int
         Bytes to read at a time (default 8192)
-    
+
     Returns
     -------
     list[dict[str,[str|path]]]
@@ -182,16 +298,16 @@ def sha256sum(files, chunk_size=8192):
     '''
     if isinstance(files, (str, Path)):
         files = [files]
-    
+
     data = []
     for filepath in files:
         try:
             hash_obj = hashlib.sha256()
-            
+
             with open(filepath, 'rb') as f:
                 while chunk := f.read(chunk_size):
                     hash_obj.update(chunk)
-            
+
             data.append(
                 {
                     'filepath': filepath,
@@ -199,7 +315,7 @@ def sha256sum(files, chunk_size=8192):
                     'message': f'{hash_obj.hexdigest()}  {filepath}'
                 }
             )
-        
+
         except FileNotFoundError:
             data.append(
                 {
@@ -226,4 +342,3 @@ def sha256sum(files, chunk_size=8192):
             )
 
     return data
-
