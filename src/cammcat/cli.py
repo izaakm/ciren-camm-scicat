@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 # CLI
 # ========================================================================
 def cli_add_dataset_to_repository(args):
+    '''
+    Add dataset to the CAMM repository. The default is to copy the entire
+    contents of given source directory (or file).
+    '''
     import os
 
     from cammcat.settings import load_settings
@@ -389,6 +393,8 @@ def cli():
 
     parse_add = subparsers.add_parser(
         'add',
+        help='Add (copy) dataset to CAMM data repository.',
+        description=cli_add_dataset_to_repository.__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parse_add.set_defaults(func=cli_add_dataset_to_repository)
@@ -464,12 +470,12 @@ def cli():
     parse_add_source_file_or_folder = parse_add.add_mutually_exclusive_group(required=True)
     parse_add_source_file_or_folder.add_argument(
         '--sourceFolder',
-        help="Source directory to copy into data respository.",
+        help='Path to directory. Copy the directory and all of its contents into the data repository.',
         type=pathlib.Path
     )
     parse_add_source_file_or_folder.add_argument(
         '--sourceFile',
-        help='Copy the given file into the data repository.',
+        help='Path to file. Copy the given file into the data repository.',
         type=pathlib.Path,
     )
     parse_add.add_argument(
