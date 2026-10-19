@@ -44,15 +44,28 @@ def cli_add_dataset_to_repository(args):
 
     if args.sourceFolder:
         if args.sourceFolder.is_dir():
+            # --sourceFolder /path/to/dirname
+            # dest:          $CAMM_REPO/dirname
+            # checksums:     $CAMM_REPO/checksums.sha256
             name = args.sourceFolder.name
             source = args.sourceFolder
+            # For checksums
+            root = args.sourceFolder.parent
+            files = args.sourceFolder.rglob('*')
         else:
             sys.tracebacklimit = 0
             raise ValueError(f'--sourceFolder is not a directory or does not exist: {args.sourceFolder}')
     elif args.sourceFile:
         if args.sourceFile.is_file():
+            # The final path for a *file* is differnt:
+            # --sourceFile /path/to/filename.csv
+            # dest:        $CAMM_REPO/filename/filename.csv
+            # checksums:   $CAMM_REPO/checksums.sha256
             name = args.sourceFile.stem
             source = args.sourceFile
+            # For checksums
+            root = args.sourceFile.parent
+            files = [args.sourceFile]
         else:
             sys.tracebacklimit = 0
             raise ValueError(f'--soureFile is not a file or does not exist: {args.sourceFile}')
@@ -68,38 +81,49 @@ def cli_add_dataset_to_repository(args):
         sys.tracebacklimit = 0
         raise ValueError(f'--camm-repository is required.')
 
+    if not os.path.isdir(settings.camm_repo):
+        raise FileNotFoundError(f'CAMM Repo does not exist: "{settings.camm_repo}"')
+
+    if args.checksums or args.verify_checksums:
+        # Get checksums before copying data
+        checksums = utils.Checksums(root=root, algorithm=args.chkAlg)
+        checksums.hash_files(files)
+        # print(checksums.root)
+        # print(vars(checksums))
+        # checksums.write()
+
     dest = utils.get_dest_path(
         parent=settings.camm_repo,
         key=key,
         name=name
     )
-    # print(dest)
-
-    if not os.path.isdir(settings.camm_repo):
-        raise FileNotFoundError(f'CAMM Repo does not exist: "{settings.camm_repo}"')
-
-    # [TODO] Get checksums before copying data
-
     utils.copy_dataset(
         source,
         dest,
         ignore=None,
         dry_run=args.dry_run
     )
-    
-    # [TODO] Write the checksums ...
-    # - into the destination directory?
-    #     repo/toy
-    #     repo/toy/checksums
-    # - or next to the destination directory?
-    #     repo/toy
-    #     repo/toy.checksums
 
-    # [TODO] Optional, also validate checksums after copying data
+    if args.checksums or args.verify_checksums:
+        # Write the checksums next to the destination directory:
+        #     repo/toy
+        #     repo/toy.checksums
+        checksums.root = dest.parent
+
+        if args.sourceFile:
+            # Update the filename in the repo to include the additional parent directory.
+            checksums.data[f'{args.sourceFile.name}']['filepath'] = pathlib.Path(f'{name}/{args.sourceFile.name}')
+        # print(vars(checksums))
+        checksums.write(outpath=checksums.root/'checksums.sha256')
+
+    if args.verify_checksums:
+        # Optional, also validate checksums after copying data
+        checksums.verify()
 
 
 def cli_attach_datafiles_to_dataset(args):
     raise NotImplementedError('Attach command not implemented yet.')
+
 
 def cli_create(args):
     '''
@@ -463,7 +487,6 @@ def cli():
 
     # ========================================================================
     # Add dataset to respository
-    # [IN PROGRESS] Also needs to handle individual files as "datasets"???
     # [TODO] Optional: Instead of copying the 'sourceFolder', tar everything up
     # so the repository has only tar files. Or possibly hdf5 files???
     # ========================================================================
@@ -492,7 +515,7 @@ def cli():
         default='sha256'
     )
     parse_add.add_argument(
-        '--checksums',
+        '--checksums', '-c',
         help='Calculate checksums from original data files using given algorithm.',
         action='store_true',
     )
