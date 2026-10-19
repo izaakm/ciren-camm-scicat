@@ -141,6 +141,10 @@ class Checksums:
     def __repr__(self):
         return self.data.__repr__()
 
+    @property
+    def _hash_name(self):
+        return f'{self.algorithm}sum'
+
     def hash_files(self, files, chunk_size=8192):
         '''
         Compute hash values for the given files. Results are stored in the
@@ -170,15 +174,17 @@ class Checksums:
             hash = self._hash_func(filepath)
             self.data[f'{relpath}'] = {
                 'filepath': relpath,
-                f'{self.algorithm}sum': hash,
-                'message': f'{hash}  {relpath}'
+                f'{self._hash_name}': hash
             }
 
     def _to_string(self):
         '''
         Format output.
         '''
-        return '\n'.join([item['message'] for item in self.data.values()])
+        lines = []
+        for key, item in self.data.items():
+            lines.append(f'{item[self._hash_name]}  {item["filepath"]}')
+        return '\n'.join(lines)
 
     def write(self, outpath=None):
         '''
@@ -251,14 +257,14 @@ class Checksums:
         -------
         Checksums
         '''
+        hash_name = f'{algorithm}sum'
         data = {}
         with open(filepath) as f:
             for line in f.readlines():
                 hash, target_path = line.strip().split(maxsplit=1)
                 data[target_path] = {
                     'filepath': target_path,
-                    f'{algorithm}sum': hash,
-                    'message': line.strip()
+                    f'{hash_name}': hash
                 }
         return cls(root=os.path.dirname(filepath), algorithm=algorithm, data=data)
 
