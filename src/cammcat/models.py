@@ -1,57 +1,9 @@
-# '''
-# Init signature:
-# RawDataset(
-#     *,
-#     # [sorted]
-#     accessGroups          : List[str] | None            = None,
-#     classification        : str | None                  = None,
-#     contactEmail          : str,                                # Required
-#     createdAt             : str | None                  = None,
-#     createdBy             : str | None                  = None,
-#     creationLocation      : str,                                # Required
-#     creationTime          : str,                                # Required
-#     dataFormat            : str | None                  = None,
-#     datasetName           : str
-#     description           : str | None                  = None,
-#     endTime               : str | None                  = None,
-#     history               : List[dict] | None           = None,
-#     instrumentGroup       : str | None                  = None,
-#     instrumentId          : str | None                  = None,
-#     isPublished           : bool | None                 = False,
-#     keywords              : List[str] | None            = None,
-#     license               : str | None                  = None,
-#     numberOfFiles         : int | None                  = None,
-#     numberOfFilesArchived : int | None                  = None,
-#     orcidOfOwner          : str | None                  = None,
-#     owner                 : str,                                # Required
-#     ownerEmail            : str | None                  = None,
-#     ownerGroup            : str,                                # Required
-#     packedSize            : int | None                  = None,
-#     pid                   : str | None                  = None,
-#     principalInvestigator : str,                                # Required
-#     proposalId            : str | None                  = None,
-#     sampleId              : str | None                  = None,
-#     scientificMetadata    : Dict | None                 = None,
-#     sharedWith            : List[str] | None            = None,
-#     size                  : int | None                  = None,
-#     sourceFolder          : str,                                # Required
-#     sourceFolderHost      : str | None                  = None,
-#     techniques            : List[dict] | None           = None,
-#     type                  : pyscicat.model.DatasetType  = <DatasetType.raw:'raw'>,
-#     updatedAt             : str | None                  = None,
-#     updatedBy             : str | None                  = None,
-#     validationStatus      : str | None                  = None,
-#     version               : str | None                  = None,
-# ) -> None
-# '''
-
 import os
-
-# from os.path import join, getsize
-from pathlib import Path
 
 from collections import UserList
 from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -60,6 +12,7 @@ from pyscicat.model import (
     CreateDatasetOrigDatablockDto,
     DataFile,
     DatasetType,
+    DerivedDataset,
     Ownable,
     RawDataset,
 )
@@ -71,26 +24,97 @@ from cammcat import utils
 # ========================================================================
 # Dataset
 # ========================================================================
-# class ScientificMetadata(BaseModel):
-#     pass
+class CaseInsensitiveEnum(str, Enum):
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            for member in cls:
+                if member.value.lower() == value.lower():
+                    return member
+        return None
 
 
-class CAMMDataset(RawDataset):
-    scientificMetadata: Optional[dict[str,Any]] = {}
+class ResearchDomain(CaseInsensitiveEnum):
+    condensed_matter = 'Condensed Matter'
+    quantum_physics = 'Quantum Physics'
+    materials_science = 'Materials Science'
+    neutron_scattering = 'Neutron Scattering'
+
+
+class Technique(CaseInsensitiveEnum):
+    STM = 'STM'
+    STS = 'STS'
+    DFT = 'DFT'
+    PIMC = 'PIMC'
+    INS = 'INS'
+    persistent_homology = 'Persistent Homology'
+    machine_learning_potential = 'Machine Learning Potential'
+
+
+class DataOrigin(CaseInsensitiveEnum):
+    experimental = 'Experimental'
+    computational = 'Computational'
+    hybrid = 'Hybrid'
+
+
+class ScientificMetadata(BaseModel, extra='allow'):
+    chemical_formula: Optional[str] = None
+    data_origin: Optional[DataOrigin] = None
+    date: Optional[str] = None
+    experiment_type: Optional[str] = None
+    instrument_name: Optional[str] = None
+    pressure: Optional[float] = None
+    research_domain: Optional[ResearchDomain] = None
+    sample_name: Optional[str] = None
+    technique: Optional[list[Technique]] = None
+    temperature: Optional[float] = None
+
+    def model_dump(self, *args, **kwargs):
+        # At the time of writing, there is no way to set `mode="json"` as the default.
+        # See: https://github.com/pydantic/pydantic/issues/11647
+        # WARNING: This doesn't work in ipython with `%autoreload`:
+        #   ----> 1 m.model_dump()
+        #   File <string>:3, in model_dump(self, *args, **kwargs)
+        #         1 'Could not get source, probably due dynamically evaluated source code.'
+        #   RuntimeError: super(): __class__ cell not found
+        kwargs.setdefault('exclude_none',True)
+        kwargs.setdefault('mode', 'json')
+        return super().model_dump(*args, **kwargs)
+
+class CAMMDataset(DerivedDataset):
+    # scientificMetadata: Optional[dict[str,Any]] = {}
+    scientificMetadata: Optional[ScientificMetadata] = None
 
     def get(self, key, default=None):
         if hasattr(self, key):
             return getattr(self, key)
         return default
 
-    def update_metadata_from_file(self, filepath:Path):
+    def _update_scientific_metadata(self, new):
         if self.scientificMetadata is None:
-            self.scientificMetadata = {}
+            metadata = {}
+        else:
+            metadata = self.scientificMetadata.model_dump()
+        metadata.update(new)
+        self.scientificMetadata = ScientificMetadata(**metadata)
+
+    def update_metadata_from_file(self, filepath:Path):
         if filepath.suffix == '.nxs':
             metadata = nexus.get_metadata_from_nexus_file(filepath)
-            self.scientificMetadata.update(metadata)
         else:
             raise NotImplementedError(f'Cannot extract metadata file type "{filepath.suffix}": {filepath}')
+        self._update_scientific_metadata(metadata)
+
+    def model_dump(self, *args, **kwargs):
+        # At the time of writing, there is no way to set `mode="json"` as the default.
+        # See: https://github.com/pydantic/pydantic/issues/11647
+        # WARNING: This doesn't work in ipython with `%autoreload`:
+        #   ----> 1 m.model_dump()
+        #   File <string>:3, in model_dump(self, *args, **kwargs)
+        #         1 'Could not get source, probably due dynamically evaluated source code.'
+        #   RuntimeError: super(): __class__ cell not found
+        kwargs.setdefault('mode', 'json')
+        return super().model_dump(*args, **kwargs)
 
     def to_json(self):
         pass
