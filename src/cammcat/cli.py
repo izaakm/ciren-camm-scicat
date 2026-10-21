@@ -47,8 +47,8 @@ def cli_add_dataset_to_repository(args):
             # --sourceFolder /path/to/dirname
             # dest:          $CAMM_REPO/dirname
             # checksums:     $CAMM_REPO/checksums.sha256
-            name = args.sourceFolder.name
             source = args.sourceFolder
+            source_name = args.sourceFolder.name
             # For checksums
             root = args.sourceFolder.parent
             files = args.sourceFolder.rglob('*')
@@ -61,8 +61,8 @@ def cli_add_dataset_to_repository(args):
             # --sourceFile /path/to/filename.csv
             # dest:        $CAMM_REPO/filename/filename.csv
             # checksums:   $CAMM_REPO/checksums.sha256
-            name = args.sourceFile.stem
             source = args.sourceFile
+            source_name = args.sourceFile.stem
             # For checksums
             root = args.sourceFile.parent
             files = [args.sourceFile]
@@ -92,6 +92,8 @@ def cli_add_dataset_to_repository(args):
         # print(vars(checksums))
         # checksums.write()
 
+    # name = args.datasetName or source_name
+    name = source_name
     dest = utils.get_dest_path(
         parent=settings.camm_repo,
         key=key,
@@ -120,6 +122,8 @@ def cli_add_dataset_to_repository(args):
         # Optional, also validate checksums after copying data
         checksums.verify()
 
+    logger.info('Added %s' % dest)
+    return 0
 
 def cli_attach_datafiles_to_dataset(args):
     raise NotImplementedError('Attach command not implemented yet.')
@@ -332,7 +336,7 @@ def cli_model(args):
     from cammcat.models import CAMMDataset
 
     if args.dump_schema:
-        schema = CAMMDataset.model_json_schema()
+        schema = CAMMDataset.model_json_schema(union_format="primitive_type_array")
         print(json.dumps(schema, indent=2))
 
 
@@ -484,7 +488,7 @@ def cli():
     parse_create.add_argument(
         '--get-metadata-from-file',
         dest='metadata_file',
-        help='Path to file. Extract metadata to this file and add it to the dataset.',
+        help='Path to file. Extract metadata from this file and add it to the dataset.',
         type=pathlib.Path
     )
 
@@ -542,6 +546,11 @@ def cli():
         '--verify-checksums',
         help='Verify checksums after the data is copied. This also sets "--checksums".',
         action='store_true'
+    )
+    parse_add.add_argument(
+        '--datasetName',
+        help='Name of dataset. Used as the name of the destination directory',
+        type=str
     )
 
     # ========================================================================
