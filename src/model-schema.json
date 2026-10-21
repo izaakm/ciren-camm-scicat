@@ -1,0 +1,743 @@
+{
+  "$defs": {
+    "DataOrigin": {
+      "enum": [
+        "Experimental",
+        "Computational",
+        "Hybrid"
+      ],
+      "title": "DataOrigin",
+      "type": "string"
+    },
+    "DatasetLifeCycleClass": {
+      "description": "Describes the lifecycle of a dataset",
+      "properties": {
+        "archivable": {
+          "default": null,
+          "title": "Archivable",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "archiveRetentionTime": {
+          "default": null,
+          "title": "Archiveretentiontime",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "archiveReturnMessage": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archivereturnmessage"
+        },
+        "archiveStatusMessage": {
+          "default": null,
+          "title": "Archivestatusmessage",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dateOfDiskPurging": {
+          "default": null,
+          "title": "Dateofdiskpurging",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dateOfPublishing": {
+          "default": null,
+          "title": "Dateofpublishing",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exportedTo": {
+          "default": null,
+          "title": "Exportedto",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isOnCentralDisk": {
+          "default": null,
+          "title": "Isoncentraldisk",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "publishable": {
+          "default": null,
+          "title": "Publishable",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "publishedOn": {
+          "default": null,
+          "title": "Publishedon",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retrievable": {
+          "default": null,
+          "title": "Retrievable",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retrieveReturnMessage": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retrievereturnmessage"
+        },
+        "retrieveStatusMessage": {
+          "default": null,
+          "title": "Retrievestatusmessage",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retrieveIntegrityCheck": {
+          "default": null,
+          "title": "Retrieveintegritycheck",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageLocation": {
+          "default": null,
+          "title": "Storagelocation",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "title": "DatasetLifeCycleClass",
+      "type": "object"
+    },
+    "DatasetType": {
+      "description": "type of Dataset",
+      "enum": [
+        "raw",
+        "derived"
+      ],
+      "title": "DatasetType",
+      "type": "string"
+    },
+    "RelationshipClass": {
+      "description": "Decscribes a relationship between datasets",
+      "properties": {
+        "pid": {
+          "title": "Pid",
+          "type": "string"
+        },
+        "relationship": {
+          "title": "Relationship",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pid",
+        "relationship"
+      ],
+      "title": "RelationshipClass",
+      "type": "object"
+    },
+    "ResearchDomain": {
+      "enum": [
+        "Condensed Matter",
+        "Quantum Physics",
+        "Materials Science",
+        "Neutron Scattering"
+      ],
+      "title": "ResearchDomain",
+      "type": "string"
+    },
+    "ScientificMetadata": {
+      "additionalProperties": true,
+      "properties": {
+        "chemical_formula": {
+          "default": null,
+          "title": "Chemical Formula",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data_origin": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataOrigin"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "date": {
+          "default": null,
+          "title": "Date",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "experiment_type": {
+          "default": null,
+          "title": "Experiment Type",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "instrument_name": {
+          "default": null,
+          "title": "Instrument Name",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pressure": {
+          "default": null,
+          "title": "Pressure",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "research_domain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResearchDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sample_name": {
+          "default": null,
+          "title": "Sample Name",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "technique": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Technique"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technique"
+        },
+        "temperature": {
+          "default": null,
+          "title": "Temperature",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "title": "ScientificMetadata",
+      "type": "object"
+    },
+    "Technique": {
+      "enum": [
+        "STM",
+        "STS",
+        "DFT",
+        "PIMC",
+        "INS",
+        "Persistent Homology",
+        "Machine Learning Potential"
+      ],
+      "title": "Technique",
+      "type": "string"
+    }
+  },
+  "description": "This is the primary class for handling CAMM datasets.",
+  "properties": {
+    "createdBy": {
+      "default": null,
+      "title": "Createdby",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedBy": {
+      "default": null,
+      "title": "Updatedby",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedAt": {
+      "default": null,
+      "title": "Updatedat",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createdAt": {
+      "default": null,
+      "title": "Createdat",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ownerGroup": {
+      "title": "Ownergroup",
+      "type": "string"
+    },
+    "accessGroups": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Accessgroups"
+    },
+    "instrumentGroup": {
+      "default": null,
+      "title": "Instrumentgroup",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pid": {
+      "default": null,
+      "title": "Pid",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "classification": {
+      "default": null,
+      "title": "Classification",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "comment": {
+      "default": null,
+      "title": "Comment",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contactEmail": {
+      "title": "Contactemail",
+      "type": "string"
+    },
+    "creationTime": {
+      "title": "Creationtime",
+      "type": "string"
+    },
+    "datasetName": {
+      "title": "Datasetname",
+      "type": "string"
+    },
+    "datasetlifecycle": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DatasetLifeCycleClass"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "dataQualityMetrics": {
+      "default": null,
+      "title": "Dataqualitymetrics",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "description": {
+      "default": null,
+      "title": "Description",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "history": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "History"
+    },
+    "instrumentId": {
+      "default": null,
+      "title": "Instrumentid",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "investigator": {
+      "default": null,
+      "title": "Investigator",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "isPublished": {
+      "default": false,
+      "title": "Ispublished",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "jobLogData": {
+      "default": null,
+      "title": "Joblogdata",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "jobParameters": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Jobparameters"
+    },
+    "keywords": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Keywords"
+    },
+    "license": {
+      "default": null,
+      "title": "License",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "numberOfFiles": {
+      "default": null,
+      "title": "Numberoffiles",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "numberOfFilesArchived": {
+      "default": null,
+      "title": "Numberoffilesarchived",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "orcidOfOwner": {
+      "default": null,
+      "title": "Orcidofowner",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ownerEmail": {
+      "default": null,
+      "title": "Owneremail",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "packedSize": {
+      "default": null,
+      "title": "Packedsize",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "relationships": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/RelationshipClass"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Relationships"
+    },
+    "runNumber": {
+      "default": null,
+      "title": "Runnumber",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scientificMetadata": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ScientificMetadata"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Metadata for experimental and simulation values.",
+      "title": "Scientific Metadata"
+    },
+    "sharedWith": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sharedwith"
+    },
+    "size": {
+      "default": null,
+      "title": "Size",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "sourceFolder": {
+      "title": "Sourcefolder",
+      "type": "string"
+    },
+    "sourceFolderHost": {
+      "default": null,
+      "title": "Sourcefolderhost",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "techniques": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Techniques"
+    },
+    "validationStatus": {
+      "default": null,
+      "title": "Validationstatus",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "version": {
+      "default": null,
+      "title": "Version",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "creationLocation": {
+      "title": "Creationlocation",
+      "type": "string"
+    },
+    "dataFormat": {
+      "default": null,
+      "title": "Dataformat",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "endTime": {
+      "default": null,
+      "title": "Endtime",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "inputDatasets": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Inputdatasets"
+    },
+    "owner": {
+      "title": "Owner",
+      "type": "string"
+    },
+    "principalInvestigator": {
+      "title": "Principalinvestigator",
+      "type": "string"
+    },
+    "proposalId": {
+      "default": null,
+      "title": "Proposalid",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sampleId": {
+      "default": null,
+      "title": "Sampleid",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "type": {
+      "$ref": "#/$defs/DatasetType",
+      "default": "raw"
+    },
+    "usedSoftware": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Usedsoftware"
+    }
+  },
+  "required": [
+    "ownerGroup",
+    "contactEmail",
+    "creationTime",
+    "datasetName",
+    "sourceFolder",
+    "creationLocation",
+    "owner",
+    "principalInvestigator"
+  ],
+  "title": "CAMMDataset",
+  "type": "object"
+}
