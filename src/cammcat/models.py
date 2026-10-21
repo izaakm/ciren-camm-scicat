@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pyscicat.model import (
     Attachment,
     CreateDatasetOrigDatablockDto,
@@ -82,8 +82,15 @@ class ScientificMetadata(BaseModel, extra='allow'):
         return super().model_dump(*args, **kwargs)
 
 class CAMMDataset(DerivedDataset):
+    '''
+    This is the primary class for handling CAMM datasets.
+    '''
     # scientificMetadata: Optional[dict[str,Any]] = {}
-    scientificMetadata: Optional[ScientificMetadata] = None
+    scientificMetadata: Optional[ScientificMetadata] = Field(
+        default=None,
+        title='Scientific Metadata',
+        description='Metadata for experimental and simulation values.',
+    )
 
     def get(self, key, default=None):
         if hasattr(self, key):
