@@ -327,8 +327,14 @@ def cli_list_files(args):
                 print(linefmt.format(pid=pid, uid=uid, gid=gid, size=size, mtime=mtime, filepath=filepath))
 
 
-def cli_schema(args):
-    pass
+def cli_model(args):
+    import json
+    from cammcat.models import CAMMDataset
+
+    if args.dump_schema:
+        schema = CAMMDataset.model_json_schema()
+        print(json.dumps(schema, indent=2))
+
 
 def cli_update(args):
     raise NotImplementedError
@@ -413,6 +419,9 @@ def cli():
     parser.add_argument('--scicat-base-url', dest='base_url', default=os.getenv(_env_camm_base_url, ''))
     parser.add_argument('--dry-run', '-n', action='store_true', default=False)
 
+    # ========================================================================
+    # Init Subparsers
+    # ========================================================================
     subparsers = parser.add_subparsers()
 
     parse_help = subparsers.add_parser('help')
@@ -438,6 +447,9 @@ def cli():
     parse_config = subparsers.add_parser('config')
     parse_config.set_defaults(func=cli_config)
 
+    parse_model = subparsers.add_parser('model')
+    parse_model.set_defaults(func=cli_model)
+
     parse_show = subparsers.add_parser('show')
     parse_show.set_defaults(func=cli_show)
 
@@ -453,9 +465,10 @@ def cli():
     parse_update = subparsers.add_parser('update')
     parse_update.set_defaults(func=cli_update)
 
+    # ========================================================================
     # Create a new dataset in the SciCat metadata database.
+    # ========================================================================
     parse_create = _add_dataset_args(parse_create)
-    # Others
     parse_create.add_argument(
         '--chkAlg',
         help='Calculate checksums using given algorithm.',
@@ -475,6 +488,9 @@ def cli():
         type=pathlib.Path
     )
 
+    # ========================================================================
+    # Config
+    # ========================================================================
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
     parse_config_list.set_defaults(func=cli_config_list)
@@ -549,6 +565,12 @@ def cli():
         type=str,
         nargs='*'
     )
+
+
+    # ========================================================================
+    # Model
+    # ========================================================================
+    parse_model.add_argument('--dump-schema', action='store_true')
 
     # ========================================================================
     # Show dataset
