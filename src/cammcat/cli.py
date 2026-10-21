@@ -327,6 +327,9 @@ def cli_list_files(args):
                 print(linefmt.format(pid=pid, uid=uid, gid=gid, size=size, mtime=mtime, filepath=filepath))
 
 
+def cli_schema(args):
+    pass
+
 def cli_update(args):
     raise NotImplementedError
 
@@ -346,7 +349,7 @@ def parse_log_level(value, default=logging.WARNING):
         return default
 
 
-def create_dataset_args(parser):
+def _add_dataset_args(parser):
     # Add [dataset]
     # Metadata => Required
     parser.add_argument('--contactEmail', type=str)
@@ -451,7 +454,7 @@ def cli():
     parse_update.set_defaults(func=cli_update)
 
     # Create a new dataset in the SciCat metadata database.
-    parse_create = create_dataset_args(parse_create)
+    parse_create = _add_dataset_args(parse_create)
     # Others
     parse_create.add_argument(
         '--chkAlg',
@@ -556,7 +559,7 @@ def cli():
     # ========================================================================
     # Update dataset
     # ========================================================================
-    parse_update = create_dataset_args(parse_update)
+    parse_update = _add_dataset_args(parse_update)
 
     # ========================================================================
     # Parse args
