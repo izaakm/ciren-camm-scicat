@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from pyscicat.model import (
     Attachment,
     CreateDatasetOrigDatablockDto,
@@ -17,7 +18,7 @@ from pyscicat.model import (
     RawDataset,
 )
 
-from cammcat.datatypes import nexus
+from cammcat.datatypes import cif, nexus
 from cammcat.settings import standardize_setting_names
 from cammcat import utils
 
@@ -57,6 +58,9 @@ class DataOrigin(CaseInsensitiveEnum):
     hybrid = 'Hybrid'
 
 
+# class ScientificMetadata(BaseModel, extra='allow'):
+#     pass
+
 class ScientificMetadata(BaseModel, extra='allow'):
     chemical_formula: Optional[str] = None
     data_origin: Optional[DataOrigin] = None
@@ -81,11 +85,38 @@ class ScientificMetadata(BaseModel, extra='allow'):
         kwargs.setdefault('mode', 'json')
         return super().model_dump(*args, **kwargs)
 
-class CAMMDataset(DerivedDataset):
+# Base classes, for reference
+# ---------------------------
+# class RawDataset(DatasetCommon):
+#     """
+#     Raw datasets from which derived datasets are... derived.
+#     """
+#     creationLocation: str  # Required for a raw dataset
+#     dataFormat: Optional[str] = None
+#     endTime: Optional[str] = None  # datetime
+#     inputDatasets: Optional[List[str]] = None                  * also in DerivedDataset
+#     owner: str                                                 * also in DerivedDataset
+#     principalInvestigator: str  # Required for a raw dataset
+#     proposalId: Optional[str] = None                           * also in DerivedDataset
+#     sampleId: Optional[str] = None
+#     type: DatasetType = DatasetType.raw                        * also in DerivedDataset
+#     usedSoftware: Optional[List[str]] = None                   * also in DerivedDataset
+#
+# class DerivedDataset(DatasetCommon):
+#     """
+#     Derived datasets which have been generated based on one or more raw datasets
+#     """
+#     inputDatasets: List[str] = []
+#     owner: str
+#     proposalId: Optional[str] = None
+#     type: DatasetType = DatasetType.derived
+#     usedSoftware: List[str] = []
+
+class CAMMDataset(RawDataset):
     '''
     This is the primary class for handling CAMM datasets.
     '''
-    # scientificMetadata: Optional[dict[str,Any]] = {}
+    # scientificMetadata: Optional[dict[str,Any]] = None
     scientificMetadata: Optional[ScientificMetadata] = Field(
         default=None,
         title='Scientific Metadata',
@@ -108,6 +139,8 @@ class CAMMDataset(DerivedDataset):
     def update_metadata_from_file(self, filepath:Path):
         if filepath.suffix == '.nxs':
             metadata = nexus.get_metadata_from_nexus_file(filepath)
+        elif filepath.suffix == '.cif':
+            metadata = cif.get_metadata_from_cif_file(filepath)
         else:
             raise NotImplementedError(f'Cannot extract metadata file type "{filepath.suffix}": {filepath}')
         self._update_scientific_metadata(metadata)
@@ -190,7 +223,7 @@ def get_numberOfFiles(sourceFolder):
 def get_size(sourceFolder):
     '''
     Based on example from `os.walk` example in Python docs.
-    
+
     Returns
     -------
     size
@@ -294,6 +327,7 @@ def get_data_block(sourceFolder, chkAlg=None, relative_to=None, **kwargs):
     )
 
 
+# [TODO] Handle "DerivedDataset" class????
 def new_dataset(
         # RawDataset (Required)
         contactEmail: str | None = None,
@@ -332,7 +366,7 @@ def new_dataset(
         size: int | None = None,
         sourceFolderHost: str | None = None,
         techniques: List[dict] | None = None,
-        type_: DatasetType|str = 'raw',
+        type_: str|None = 'raw',
         updatedAt: str | None = None,
         updatedBy: str | None = None,
         validationStatus: str | None = None,
@@ -352,8 +386,8 @@ def new_dataset(
     - "packedSize"?
 
     Issue:
-        ScicatCommError: Error in operation datasets_create: 
-            {'status': 400, 'message': 
+        ScicatCommError: Error in operation datasets_create:
+            {'status': 400, 'message':
                 '[
                     {"property":"createdBy","constraints":{"whitelistValidation":"property createdBy should not exist"}},
                     {"property":"updatedBy","constraints":{"whitelistValidation":"property updatedBy should not exist"}},
@@ -400,6 +434,11 @@ def new_dataset(
     else:
         path = sourceFolder
 
+    # if type_ == 'raw':
+    #     type_ = DatasetType.raw
+    # else:
+    #     type_ = DatasetType.derived
+
     return CAMMDataset(
         # Required
         contactEmail=contactEmail,
@@ -437,7 +476,6 @@ def new_dataset(
         size=size,
         sourceFolderHost=sourceFolderHost,
         techniques=techniques,
-        type=type_,
         updatedAt=updatedAt,
         # updatedBy=updatedBy,                         # Error: ... "should not exist"???
         validationStatus=validationStatus,
