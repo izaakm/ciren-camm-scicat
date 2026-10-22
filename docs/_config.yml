@@ -1,0 +1,9 @@
+title: CAMM-CAT Documentation
+description: Documentation for the cammcat Python package and CLI
+theme: jekyll-theme-cayman
+
+# If you later adopt a docs theme like "just-the-docs", replace the line
+# above with:
+# remote_theme: just-the-docs/just-the-docs
+
+markdown: kramdown
