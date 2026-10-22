@@ -17,49 +17,54 @@ primary way most users will interact with the package.
 ## Quick links
 
 - [Installation](installation.md)
-- [Configuration](configuration.md) — config file, environment variables, CLI flags
+- [Configuration](configuration.md) - config file, environment variables, CLI flags
 - [CLI command reference](cli/index.md)
 
-## What can the CLI do?
+## Primary commands
 
-| Command | Purpose |
-|---|---|
-| [`cammcat add`](cli/add.md) | Copy a dataset (file or folder) into the CAMM data repository, optionally computing/verifying checksums. |
-| [`cammcat create`](cli/create.md) | Build dataset metadata and register a new dataset (and its data block) in SciCat. |
-| [`cammcat list`](cli/list.md) | List datasets already registered in SciCat. |
-| [`cammcat list-files`](cli/list-files.md) | List the files attached to one or more datasets. |
-| [`cammcat show`](cli/show.md) | Print the full metadata record for one or more datasets. |
-| [`cammcat login`](cli/login.md) | Authenticate against SciCat and verify credentials work. |
-| [`cammcat model`](cli/model.md) | Inspect the dataset's underlying data model (e.g. dump its JSON schema). |
-| [`cammcat config`](cli/config.md) | Inspect configuration loaded from a config file. |
-| [`cammcat help`](cli/help.md) | Show available settings and their current resolved values. |
+- [`cammcat add`](./cli/add.md) — copy a dataset into the CAMM repository
+- [`cammcat create`](./cli/create.md) — register dataset metadata in SciCat
+- [`cammcat list`](./cli/list.md) — list datasets in SciCat
+- [`cammcat show`](./cli/show.md) — print full metadata for datasets
 
-> **Note:** `attach` and `update` are present in the CLI but not yet
-> implemented — they will raise `NotImplementedError` if invoked. They'll be
-> documented here once implemented.
 
-## Basic workflow
+## Quick Start
 
-A typical workflow looks like this:
+Once installed, a typical workflow looks like this:
 
 ```bash
-# 1. Copy data into the shared CAMM repository
-cammcat add --sourceFolder /data/experiment1 --camm-repository /camm/repo --checksums
+# 1. Copy data files into the CAMM repository (does not require credentials)
+cammcat add \
+    --sourceFolder /data/experiment \
+    --camm-repository /camm/repo \
+    --verify-checksums
+# Copies/data/experiment -> /camm/repo/experiment
+# Returns path to new directory
 
 # 2. Register the dataset's metadata in SciCat
+# 2a. Export your credentials. Put these in a .env file and source it instead
+#     of typing this into the prompt so that it's not tracked in your bash history
+export CAMM_BASE_URL="https://scicat-ciren.cn.isaac.utk.edu/api/v3"
+export CAMM_USERNAME="<Your UTK NetID>"
+export CAMM_PASSWORD="<Your UTK Password>"
+# 2b. Create the dataset record in SciCat's database
 cammcat create \
-  --sourceFolder /camm/repo/<key>/experiment1 \
-  --datasetName experiment1 \
-  --contactEmail me@utk.edu \
+  --sourceFolder /camm/repo/<key>/experiment \
+  --datasetName "Name of experiment" \
+  --contactEmail netid@utk.edu \
   --creationLocation "University of Tennessee, Knoxville" \
-  --owner "Jane Scientist" \
-  --principalInvestigator "Adrian del Maestro" \
+  --owner "Your Name" \
+  --principalInvestigator "PI's Name" \
   --ownerGroup CAMM
+# Returns PID of the new dataset
 
-# 3. Confirm it is there
+# 3. Confirm
 cammcat list
 cammcat show <pid>
 ```
 
 See [Configuration](configuration.md) for how to avoid typing the
 `--camm-repository`, credentials, and base URL every time.
+
+
+<!-- END -->

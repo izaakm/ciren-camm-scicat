@@ -18,19 +18,19 @@ list of options for that command.
 
 ## Commands
 
-- [`add`](add.md) — copy a dataset into the CAMM repository
-- [`create`](create.md) — register dataset metadata in SciCat
-- [`list`](list.md) — list datasets in SciCat
-- [`list-files`](list-files.md) — list files attached to datasets
-- [`show`](show.md) — print full metadata for datasets
-- [`login`](login.md) — test authentication
-- [`model`](model.md) — inspect the dataset data model
-- [`config`](config.md) — inspect a config file
-- [`help`](help.md) — list settings and their resolved values
+| Command                                | Purpose 
+| ---                                    | ---
+| [`cammcat add`](add.md)                | Copy a dataset (file or folder) into the CAMM data repository, optionally computing/verifying checksums. 
+| [`cammcat create`](create.md)          | Build dataset metadata and register a new dataset (and its data block) in SciCat. 
+| [`cammcat list`](list.md)              | List datasets already registered in SciCat. 
+| [`cammcat list-files`](list-files.md)  | List the files attached to one or more datasets. 
+| [`cammcat show`](show.md)              | Print the full metadata record for one or more datasets. 
+| [`cammcat login`](login.md)            | Authenticate against SciCat and verify credentials work. 
+| [`cammcat model`](model.md)            | Inspect the dataset's underlying data model (e.g. dump its JSON schema). 
+| [`cammcat config`](config.md)          | Inspect configuration loaded from a config file. 
+| [`cammcat help`](help.md)              | Show available settings and their current resolved values. 
+| `cammcat attach`                       | (**Not Implemented**) Attach data files to an existing dataset.
+| `cammcat update`                       | (**Not Implemented**) Update an existing dataset's metadata.
 
-## Not yet implemented
 
-- `attach` — intended to attach data files to an existing dataset.
-- `update` — intended to update an existing dataset's metadata.
-
-Both currently raise `NotImplementedError` if run.
+<!-- END -->

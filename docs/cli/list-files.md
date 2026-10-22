@@ -1,10 +1,12 @@
 ---
-title: list-files
+title: cammcat list-files
 parent: CLI Reference
 layout: default
 ---
 
-# `cammcat list-files`
+```
+$ cammcat list-files <pid>
+```
 
 List the files recorded in the original data block(s) for one or more
 datasets.
@@ -15,7 +17,7 @@ datasets.
 cammcat list-files [dataset_id ...]
 ```
 
-- `dataset_id` — zero or more dataset PIDs. If none are given, no PIDs will
+- `dataset_id` - zero or more dataset PIDs. If none are given, no PIDs will
   be queried (pass the PIDs you want explicitly).
 
 ## Output
@@ -29,5 +31,7 @@ PID   UID   GID   Size   mTime   Filepath
 ## Example
 
 ```bash
-cammcat list-files 20.500.12345/abc-123 20.500.12345/def-456
+cammcat list-files CAMM/abc-123 CAMM/def-456
 ```
+
+<!-- END -->

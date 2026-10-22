@@ -7,3 +7,11 @@ theme: jekyll-theme-cayman
 # remote_theme: just-the-docs/just-the-docs
 
 markdown: kramdown
+
+# For local jekyll
+plugins:
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: true
