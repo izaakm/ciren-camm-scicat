@@ -1,0 +1,12 @@
+source "https://rubygems.org"
+
+gem "jekyll"
+gem "jekyll-theme-cayman"
+gem "webrick"
+gem "jekyll-relative-links"
+gem "kramdown-parser-gfm"
+gem "base64"
+gem "bigdecimal"
+gem "csv"
+gem "logger"
+gem "ostruct"
