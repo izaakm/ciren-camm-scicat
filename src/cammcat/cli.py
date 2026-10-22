@@ -505,6 +505,7 @@ def cli():
     parse_help.add_argument(
         'topic',
         nargs='?',
+        help='format: for use with "list [--fields|--format]; settings: show settings and their values.',
         choices=['format', 'settings']
     )
 
