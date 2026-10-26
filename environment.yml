@@ -2,11 +2,13 @@ name: camm-scicat
 channels:
   - conda-forge
 dependencies:
+  - gemmi
+  - h5py
   - ipykernel
   - pip
   - pydantic
-  - python
   - pytest
+  - python
   - pyyaml
   - pip:
     - "git+https://github.com/SciCatProject/pyscicat.git@c4e21ee90a2ace1cc9bad800a201b2e3cab28c5b"
