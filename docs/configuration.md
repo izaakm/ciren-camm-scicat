@@ -6,24 +6,22 @@ nav_order: 3
 
 # Configuration
 
-Settings can come from three places, merged with this priority (highest
-wins):
+Options can be passed to the `cammcat` CLI three ways, in order of priority:
 
-```
-CLI flags  >  environment variables  >  config file
-```
+1. CLI flags (take priority over other settings)
+2. Environment variables
+3. Config file (lowest priority)
 
 ## Authentication
 
-> **IMPORTANT** You must provide your username and password via env variables.
+> **IMPORTANT** You must provide your username and password via environment variables.
 
 Provide **either** a token or a username/password pair:
 
-- `CAMM_TOKEN`
-- `CAMM_USERNAME` + `CAMM_PASSWORD` - the client logs in automatically
-  (via LDAP by default) and exchanges credentials for a token.
+- `CAMM_TOKEN` (you can get this from the web frontend)
+- `CAMM_USERNAME` + `CAMM_PASSWORD` (this is your UT NetID and password)
 
-Test your credentials and connection with:
+Export the env variables, and then test your connection:
 
 ```bash
 cammcat login
@@ -38,8 +36,8 @@ cammcat \
     [...]
 ```
 
-**Global flags** can be used with any subcommand and precede the subcommand
-on the command line.
+**Global options** can be used with any subcommand and precede the subcommand
+on the command line (`cammcat [global options] subcommand [options]`):
 
 |  Flag                                                |  Description 
 | ---                                                  | ---

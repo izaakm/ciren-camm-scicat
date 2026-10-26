@@ -14,13 +14,13 @@ querying datasets that already exist there.
 This site documents the **command-line interface (CLI)**, which is the
 primary way most users will interact with the package.
 
-## Quick links
+## Topics
 
-- [Installation](installation.md)
-- [Configuration](configuration.md) - config file, environment variables, CLI flags
-- [CLI command reference](cli/index.md)
+- **[Installation](installation.md)**: Install the `cammcat` CLI.
+- **[Configuration](configuration.md)**: Setup your config file and environment variables.
+- **[CLI command reference](cli/index.md)**: Using the `cammcat` CLI.
 
-## Primary commands
+### Links to most common commands
 
 - [`cammcat add`](./cli/add.md) — copy a dataset into the CAMM repository
 - [`cammcat create`](./cli/create.md) — register dataset metadata in SciCat

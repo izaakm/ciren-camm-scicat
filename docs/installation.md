@@ -12,20 +12,41 @@ dependencies:
 - [pyscicat](https://github.com/SciCatProject/pyscicat)
 - [pydantic](https://docs.pydantic.dev/)
 - [gemmi](https://gemmi.readthedocs.io/) (for CIF files)
-- [h5py](https://www.h5py.org/) (for NeXus/HDF5 files).
+- [h5py](https://www.h5py.org/) (for NeXus/HDF5 files)
 
-## From source
+
+<!-- [TODO] fix: h5py install fails -->
+<!-- ## Standard install with pip -->
+<!---->
+<!-- ```bash -->
+<!-- git clone https://github.com/izaakm/ciren-camm-scicat.git cammcat -->
+<!-- cd cammcat -->
+<!-- pip install . -->
+<!-- ``` -->
+<!---->
+<!-- For development (editable install): -->
+<!---->
+<!-- ```bash -->
+<!-- pip install -e . -->
+<!-- ``` -->
+
+## Conda install
 
 ```bash
-git clone <this-repo-url>
-cd <this-repo>
-pip install .
+git clone https://github.com/izaakm/ciren-camm-scicat.git cammcat
+cd cammcat
+conda env create -f environment.yml --prefix /path/to/conda/envs/camm-scicat
+conda activate camm-scicat
+pip install -e .
 ```
 
-For development (editable install):
+## A note about usage on ISAAC-NG
+
+The `cammcat` package is already installed on ISAAC-NG:
 
 ```bash
-pip install -e .
+module load miniconda
+conda activate --prefix /lustre/isaac24/proj/UTK0487/conda/envs/camm-scicat
 ```
 
 ## Verify the install
@@ -33,7 +54,6 @@ pip install -e .
 ```bash
 cammcat --help
 ```
-
 
 Next: [Configuration](configuration.md) to set up your SciCat connection and
 CAMM repository location.
