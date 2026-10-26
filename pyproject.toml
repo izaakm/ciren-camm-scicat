@@ -6,10 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "cammcat"
 version = "0.1.0"
 dependencies = [
+  "gemmi",
+  "h5py",
   "pydantic",
+  "pyscicat@git+https://github.com/SciCatProject/pyscicat.git@c4e21ee90a2ace1cc9bad800a201b2e3cab28c5b",
   "pytest",
   "pyyaml",
-  "pyscicat@git+https://github.com/SciCatProject/pyscicat.git@c4e21ee90a2ace1cc9bad800a201b2e3cab28c5b"
 ]
 requires-python = ">=3.14"
 authors = [
