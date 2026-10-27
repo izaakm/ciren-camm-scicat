@@ -229,7 +229,14 @@ class Settings(BaseModel):
         lines = []
         for key, val in self.model_dump(exclude_none=True).items():
             lines.append(f'{key}={val}')
-        return '\n'.join(lines)
+        return '\n'.join(sorted(lines))
+
+    def list_attributes(self):
+        lines = []
+        for key, val in self.model_dump().items():
+            lines.append(f'{key}')
+        return '\n'.join(sorted(lines))
+
 
 
 def load_config(filepath: str):

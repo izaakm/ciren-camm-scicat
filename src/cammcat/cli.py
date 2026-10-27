@@ -263,7 +263,7 @@ def cli_help(args):
             dropna=True,
             errors='raise'
         )
-        print(settings)
+        print(settings.list_attributes())
     elif args.topic == 'format':
         print(*list_of_settings, sep='\n')
 
