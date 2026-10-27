@@ -100,6 +100,8 @@ def cli_add_dataset_to_repository(args):
         # checksums.write()
 
     # name = args.datasetName or source_name
+    if args.datasetName:
+        warnings.warn('--datasetName is ignored')
     name = source_name
     dest = utils.get_dest_path(
         parent=settings.camm_repo,
