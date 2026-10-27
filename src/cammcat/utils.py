@@ -176,7 +176,7 @@ def copy_dataset(src, dst, ignore=None, dry_run=False):
 
 
 
-def _sha256sum(filepath, chunk_size=8192):
+def sha256sum(filepath, chunk_size=8192):
     hash_obj = hashlib.sha256()
 
     with open(filepath, 'rb') as f:
@@ -212,7 +212,7 @@ class Checksums:
             self.data = {}
 
         if self.algorithm == 'sha256':
-            self._hash_func = _sha256sum
+            self._hash_func = sha256sum
         else:
             raise NotImplementedError(f'Hash algorithm is not implemented: {algorithm}')
 
