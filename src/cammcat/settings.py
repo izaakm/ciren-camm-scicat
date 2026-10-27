@@ -3,6 +3,7 @@ import os
 import runpy
 import pathlib
 import sys
+import warnings
 
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal
@@ -296,24 +297,46 @@ def merge_settings(*settings, dropna=True):
         raise Exception(msg) from e
 
 
-def load_settings(config_file, env_config, cli_config, dropna=True, errors='raise'):
+def load_settings(config_file=None, env_config=None, cli_config=None, dropna=True, errors='raise'):
     '''
     Load and merge settings. Priority (high to low):
 
         CLI > ENV > config file
     '''
     configs = []
+
     if os.path.exists(config_file):
-        # Lowest priority in first, will be overwritten by configs below.
-        d = settings_from_configfile(config_file)
-        configs.append(d)
+        # Config file: lowest priority, will be overwritten by configs below.
+        try:
+            d = settings_from_configfile(config_file)
+            configs.append(d)
+        except Exception as e:
+            if errors == 'raise':
+                raise
+            else:
+                warnings.warn(str(e))
+
     if env_config:
-        d = settings_from_env(env_config)
-        configs.append(d)
+        # Environment variables
+        try:
+            d = settings_from_env(env_config)
+            configs.append(d)
+        except Exception as e:
+            if errors == 'raise':
+                raise
+            else:
+                warnings.warn(str(e))
+
     if cli_config:
-        # Highest priority is last, will overwrite configs above.
-        d = settings_from_namespace(cli_config)
-        configs.append(d)
+        # CLI flags: highest priority is last, will overwrite configs above.
+        try:
+            d = settings_from_namespace(cli_config)
+            configs.append(d)
+        except Exception as e:
+            if errors == 'raise':
+                raise
+            else:
+                warnings.warn(str(e))
 
     settings = merge_settings(*configs, dropna=dropna)
 
