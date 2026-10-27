@@ -7,6 +7,7 @@ import os
 import pathlib
 import time
 import sys
+import warnings
 
 from cammcat.settings import (
     _env_camm_config_file,
@@ -36,7 +37,13 @@ def cli_add_dataset_to_repository(args):
     from cammcat import utils
     from pyscicat.client import ScicatCommError
 
-    settings = load_settings(args.config_file, os.environ, args)
+    settings = load_settings(
+        config_file=args.config_file,
+        env_config=os.environ,
+        cli_config=args,
+        dropna=True,
+        errors='raise'
+    )
     logger.debug(settings)
 
     key = utils.get_key()
@@ -138,7 +145,13 @@ def cli_create(args):
     from cammcat.client import get_client
     from pyscicat.client import ScicatCommError
 
-    settings = load_settings(args.config_file, os.environ, args)
+    settings = load_settings(
+        config_file=args.config_file,
+        env_config=os.environ,
+        cli_config=args,
+        dropna=True,
+        errors='raise'
+    )
 
     # [TODO] Each 'kind' of dataset could have it's own 'new_dataset' function
     # to automatically extract metadata.
@@ -211,20 +224,43 @@ def cli_config(args):
 
 
 def cli_config_list(args):
-    from cammcat.settings import load_config
+    from cammcat.settings import load_config, load_settings
 
     if not args.config_file:
-        print('Config file is not set.')
-        return 1
-    config = load_config(args.config_file)
-    print(config.list())
+        warnings.warn('--config-file is not set.')
+    elif not os.path.exists(args.config_file):
+        sys.tracebacklimit = 0
+        raise FileNotFoundError(args.config_file)
+
+    if args.all:
+        settings = load_settings(
+            config_file=args.config_file,
+            env_config=os.environ,
+            cli_config=args,
+            dropna=True,
+            errors='warn'
+        )
+    else:
+        # Only the config file
+        settings = load_settings(
+            config_file=args.config_file,
+            dropna=True,
+            errors='warn'
+        )
+    print(settings.list())
     return 0
 
 
 def cli_help(args):
     from cammcat.settings import list_of_settings, load_settings
     if args.topic == 'settings':
-        settings = load_settings(args.config_file, os.environ, args)
+        settings = load_settings(
+            config_file=args.config_file,
+            env_config=os.environ,
+            cli_config=args,
+            dropna=True,
+            errors='raise'
+        )
         print(settings)
     elif args.topic == 'format':
         print(*list_of_settings, sep='\n')
@@ -238,7 +274,13 @@ def cli_show(args):
     from cammcat.settings import load_settings
     from cammcat.client import get_client
 
-    settings = load_settings(args.config_file, os.environ, args)
+    settings = load_settings(
+        config_file=args.config_file,
+        env_config=os.environ,
+        cli_config=args,
+        dropna=True,
+        errors='raise'
+    )
     client = get_client(
         token=settings.token,
         username=settings.username,
@@ -257,7 +299,13 @@ def cli_login(args):
     from cammcat.client import get_client
     from cammcat.models import ListOfDatasets
 
-    settings = load_settings(args.config_file, os.environ, args)
+    settings = load_settings(
+        config_file=args.config_file,
+        env_config=os.environ,
+        cli_config=args,
+        dropna=True,
+        errors='raise'
+    )
     logger.debug(settings)
 
     client = get_client(
@@ -274,7 +322,13 @@ def cli_list(args):
     from cammcat.client import get_client
     from cammcat.models import ListOfDatasets
 
-    settings = load_settings(args.config_file, os.environ, args)
+    settings = load_settings(
+        config_file=args.config_file,
+        env_config=os.environ,
+        cli_config=args,
+        dropna=True,
+        errors='raise'
+    )
     logger.debug(settings)
 
     client = get_client(
@@ -305,7 +359,13 @@ def cli_list_files(args):
     from cammcat.settings import load_settings
     from cammcat.client import get_client
 
-    settings = load_settings(args.config_file, os.environ, args)
+    settings = load_settings(
+        config_file=args.config_file,
+        env_config=os.environ,
+        cli_config=args,
+        dropna=True,
+        errors='raise'
+    )
     client = get_client(
         token=settings.token,
         username=settings.username,
@@ -498,6 +558,7 @@ def cli():
     parse_config_subparsers = parse_config.add_subparsers()
     parse_config_list = parse_config_subparsers.add_parser('list')
     parse_config_list.set_defaults(func=cli_config_list)
+    parse_config_list.add_argument('--all', help='List all settings, not just those in the config file.', action='store_true')
 
     # ========================================================================
     # Help
