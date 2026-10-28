@@ -12,20 +12,38 @@ Options can be passed to the `cammcat` CLI three ways, in order of priority:
 2. Environment variables
 3. Config file (lowest priority)
 
-## Authentication
 
-> **IMPORTANT** You must provide your username and password via environment variables.
+## Required settings
 
-Provide **either** a token or a username/password pair:
+- Base url for REST API
+    - `--base-url`, `CAMM_BASE_URL` env variable, or `base_url` in config.py
+- Your username and password
+    - `CAMM_USERNAME` env variable
+    - `CAMM_PASSWORD` env variable
+- Miscellaneous
+    - `CAMM_CONTACT_EMAIL`
+- Public key: The current SciCat server is using a self-signed cert; you must
+  set this env variable for the pyscicat client to connect.
+    - `CURL_CA_BUNDLE` env variable
+- Miscellaneous required to create new datasets
+    - `--contactEmail`, `CAMM_CONTACTEMAIL`, or `contactEmail`
+    - `--creationLocation`, `CAMM_CREATIONLOCATION`, or `creationLocation`
+    - `--owner`, `CAMM_OWNER`, or `owner`
+    - `--principalInvestigator`, `CAMM_PRINCIPALINVESTIGATOR`, or `principalInvestigator`
+    - `--ownerGroup`, `CAMM_OWNERGROUP`, or `ownerGroup`
 
-- `CAMM_TOKEN` (you can get this from the web frontend)
-- `CAMM_USERNAME` + `CAMM_PASSWORD` (this is your UT NetID and password)
 
-Export the env variables, and then test your connection:
+For example:
 
-```bash
-cammcat login
 ```
+export CAMM_BASE_URL="https://scicat-ciren.cn.isaac.utk.edu/api/v3"
+
+export CAMM_USERNAME="<Your UT NetID>"
+export CAMM_PASSWORD="<Your UT password>"
+
+export CURL_CA_BUNDLE="/path/to/cammcat/certs/scicat.crt"
+```
+
 
 ## CLI Flags
 
@@ -63,6 +81,44 @@ on the command line (`cammcat [global options] subcommand [options]`):
 e.g. `contactEmail`, `ownerGroup`, `datasetName`, `keywords`, ...) can be set
 via an environment variable of the form `CAMM_<FIELDNAME>` (all uppercase).
 
+**Connect to the REST API**
+
+Export the base url for the SciCat REST API:
+
+```
+export CAMM_BASE_URL="https://scicat-ciren.cn.isaac.utk.edu/api/v3"
+```
+
+
+**Authentication**
+
+> **IMPORTANT** You must provide your username and password via environment variables.
+
+Provide **either** a token or a username/password pair:
+
+```
+export CAMM_TOKEN="<you can get this from the web frontend>"
+
+# --- or ---
+
+export CAMM_USERNAME="<Your UT NetID>"
+export CAMM_PASSWORD="<Your UT password>"
+```
+
+> **IMPORTANT** The SciCat server is currently using a self-signed cert. You
+> must provide the path to the local copy of the public key in the
+> `CURL_CA_BUNDLE` env variable to connect (included in the cammcat repo):
+
+```
+export CURL_CA_BUNDLE="/path/to/cammcat-repo/certs/scicat.crt"
+```
+
+Export the env variables, and then test your connection:
+
+```bash
+cammcat login
+```
+
 
 ## Config file
 
@@ -72,8 +128,8 @@ a setting. For example:
 
 ```python
 # camm_config.py
-base_url = "https://scicat.example.org/api/v3"
-camm_repo = "/camm/repo"
+base_url = "https://scicat-cirent.cn.isaac.utk.edu/api/v3"
+camm_repo = "/path/to/camm/repo"
 contactEmail = "me@utk.edu"
 ownerGroup = "CAMM"
 principalInvestigator = "PI's Name"
