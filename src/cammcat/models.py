@@ -325,7 +325,7 @@ def get_data_block(sourceFolder, chkAlg=None, relative_to=None, **kwargs):
 
 # [TODO] Handle "DerivedDataset" class????
 def new_dataset(
-        # RawDataset (Required)
+        # Required for pyscicat *Dataset* classes
         contactEmail: str | None = None,
         creationLocation: str | None = None,
         creationTime: str | None = None,
@@ -333,14 +333,14 @@ def new_dataset(
         sourceFolder: str | None = None,
         principalInvestigator: str | None = None,
         ownerGroup: str | None = None,
+        datasetName: str | None = None,
 
-        # RawDataset (Optional)
+        # Optional
         accessGroups: List[str] | None = None,
         classification: str | None = None,
         createdAt: str | None = None,
         createdBy: str | None = None,
         dataFormat: str | None = None,
-        datasetName: str | None = None,
         description: str | None = None,
         endTime: str | None = None,
         history: List[dict] | None = None,
@@ -429,6 +429,8 @@ def new_dataset(
         path = os.path.relpath(sourceFolder, start=relative_to)
     else:
         path = sourceFolder
+
+    datasetName = datasetName or os.path.basename(path)
 
     # if type_ == 'raw':
     #     type_ = DatasetType.raw
