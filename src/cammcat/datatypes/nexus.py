@@ -26,7 +26,11 @@ def _get_sample_name(file):
     # f['MDHistoWorkspace']['experiment0']['sample'].attrs['name'].decode()
     try:
         value = file['MDHistoWorkspace']['experiment0']['sample']
-        return value.attrs['name'].decode().strip()
+        # Handle both bytes (older h5py) and str (modern h5py)
+        name = value.attrs['name']
+        if isinstance(name, bytes):
+            return name.decode().strip()
+        return name.strip()
     except KeyError as e:
         return None
 
