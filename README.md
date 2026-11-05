@@ -221,4 +221,14 @@ Bugs
 : Solution: use `pip install git+https:https://github.com/SciCatProject/pyscicat`
 
 
+Acknowledgements
+========================================================================
+
+This material is based upon work suupported by the U.S. National Science
+Foundation (NSF) under Grant OAC-2230106.
+
+Any opinions, findings, and conclusions or recommendations expressed in this
+material are those of the author(s) and do not necessarily reflect the views of
+the National Science Foundation.
+
 <!-- END -->
