@@ -1,6 +1,5 @@
 import os
 
-
 from pathlib import Path
 from cammcat import utils
 from unittest.mock import patch
